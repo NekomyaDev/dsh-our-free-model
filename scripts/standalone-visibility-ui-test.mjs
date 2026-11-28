@@ -171,6 +171,19 @@ assert.deepEqual(writes.pop(), {
   hideEacModels: false,
 })
 
+summary.settings.visibilityPolicy = { mode: 'allowlist', hiddenLanes: [], visibleIds: Array.from({ length: 1000 }, (_, index) => `selected:${index}`) }
+summary.catalog = [{ id: 'extra:selected', name: 'Extra selected', channel: 'combo', visibilityLane: 'combo', routable: false, availability: 'available', hiddenByAllowlist: true }]
+recalculate(summary.settings)
+tree = render()
+const writesBeforePerModelOversize = writes.length
+const extraSelected = nodes(tree).find(node => node.props['data-model-id'] === 'extra:selected')
+const extraSelectedCard = render(extraSelected.type, extraSelected.props)
+byAria(extraSelectedCard, translate.format('mdl.visibilityTitle', { action: visibilityCopy('en').show, id: 'extra:selected' })).props.onClick()
+await settle()
+assert.equal(writes.length, writesBeforePerModelOversize, 'a per-model allowlist edit is rejected instead of silently truncated')
+assert.equal(nodes(render()).some(node => node.props.role === 'alert'
+  && JSON.stringify(node).includes(visibilityCopy('en').allowlistTooLarge)), true)
+
 summary.catalog = Array.from({ length: 1001 }, (_, index) => ({
   id: `combo:${index}`, name: `Combo ${index}`, channel: 'combo', visibilityLane: 'combo', routable: true, availability: 'available',
 }))

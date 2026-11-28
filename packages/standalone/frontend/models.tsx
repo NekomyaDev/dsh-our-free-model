@@ -168,6 +168,11 @@ export function Models({ summary, host, active }: { summary: Summary; host: Host
       ...extra,
     })
   }
+  const selectedIdsWithinLimit = (ids: string[]) => {
+    if (new Set(ids).size <= 1000) return true
+    setError(visibility.allowlistTooLarge)
+    return false
+  }
   const enterAllowlist = () => {
     if (knownPolicy.mode === 'allowlist') return
     const ids = [...new Set(summary.catalog
@@ -238,7 +243,7 @@ export function Models({ summary, host, active }: { summary: Summary; host: Host
       const next = selected
         ? knownPolicy.visibleIds.filter(id => !toggleIds.includes(id))
         : [...knownPolicy.visibleIds, ...toggleIds]
-      void savePolicy({ ...knownPolicy, visibleIds: [...new Set(next)] })
+      if (selectedIdsWithinLimit(next)) void savePolicy({ ...knownPolicy, visibleIds: [...new Set(next)] })
       return
     }
     void saveVisibility({ hiddenModelIds: ids.includes(model.id) ? ids : [...ids, model.id] })
