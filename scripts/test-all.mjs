@@ -95,6 +95,7 @@ const suites = [
   ['channel-localization', 'channel-localization-test.mjs', []],
   ['client-async-locale', 'client-async-locale-test.mjs', []],
   ['client-async-locale-ui', 'client-async-locale-ui-test.mjs', []],
+  ['plugin-nav-layout-ui', 'plugin-nav-layout-ui-test.mjs', []],
   ['gemini-manual-callback', 'gemini-manual-callback-test.mjs', []],
   ['gemini-manual-rpc', 'gemini-manual-rpc-test.mjs', []],
   ['open-external', 'open-external-test.mjs', []],

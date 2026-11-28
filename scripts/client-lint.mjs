@@ -100,7 +100,6 @@ const INDIRECT = new Set([
   'chan.backup.tooBig', 'chan.backup.invalidJson',
   'chan.backup.exportFailed', 'chan.backup.importFailed',
   'chan.backup.exported', 'chan.backup.imported',
-  'nav.group.daily', 'nav.group.lanes', 'nav.group.external', 'nav.group.ops',
   'routing.ioExport', 'routing.ioImport', 'routing.ioNote', 'routing.ioInvalid',
   'routing.ioTooBig', 'routing.ioExported', 'routing.ioImported', 'routing.ioConfirm',
   'routing.ioExportFailed', 'routing.ioImportFailed',

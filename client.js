@@ -857,10 +857,6 @@ window.__ModuleLoader__.load({
         'sub.accounts': '{n} 个账号',
         'nav.tab.saver': '省 Token',
         'nav.tab.routing': '路由',
-        'nav.group.daily': '日常',
-        'nav.group.lanes': '模型车道',
-        'nav.group.external': '对外与工具',
-        'nav.group.ops': '运维',
         'agg.title': '聚合渠道',
         'agg.sub': '第三方提供商',
         'agg.registryCount': '注册表 {n} 家',
@@ -1874,10 +1870,6 @@ window.__ModuleLoader__.load({
         'sub.accounts': '{n} accounts',
         'nav.tab.saver': 'Token savers',
         'nav.tab.routing': 'Routing',
-        'nav.group.daily': 'Daily',
-        'nav.group.lanes': 'Model lanes',
-        'nav.group.external': 'External tools',
-        'nav.group.ops': 'Operations',
         'agg.title': 'Aggregate providers',
         'agg.sub': 'Third-party providers',
         'agg.registryCount': '{n} in the registry',
@@ -2450,9 +2442,6 @@ window.__ModuleLoader__.load({
 .ofm_navmark{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 42%,#3ECFA0));box-shadow:0 4px 12px color-mix(in srgb,var(--dsw-alias-state-business-primary) 40%,transparent),inset 0 1px 0 rgb(255 255 255 / 22%)}
 .ofm_navmark svg{width:16px;height:16px;fill:#fff}
 .ofm_tabs{position:relative;grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:13px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 80%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent);box-shadow:inset 0 1px 2px rgb(0 0 0 / 4%)}
-.ofm_tabgroup{display:flex;align-items:center;flex-wrap:wrap;min-width:0;gap:2px;padding:1px 5px 1px 2px;border-right:1px solid var(--dsw-alias-border-l1)}
-.ofm_tabgroup:last-child{border-right:0}
-.ofm_tabgroupname{font-size:9px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--dsw-alias-label-tertiary);padding:0 4px;writing-mode:vertical-rl;transform:rotate(180deg)}
 .ofm_tabglider{position:absolute;top:0;left:0;border-radius:10px;background:linear-gradient(150deg,color-mix(in srgb,var(--dsw-alias-bg-layer-3) 92%,transparent),color-mix(in srgb,var(--dsw-alias-bg-layer-2) 88%,transparent));box-shadow:0 3px 10px rgb(0 0 0 / 14%),inset 0 1px 0 rgb(255 255 255 / 9%);transition:transform .34s cubic-bezier(.22,.61,.36,1),width .34s cubic-bezier(.22,.61,.36,1),height .34s cubic-bezier(.22,.61,.36,1);pointer-events:none}
 .ofm_tab{position:relative;z-index:1;font:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:10px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;white-space:nowrap;transition:color .2s ease}
 .ofm_tab[data-on="true"]{color:var(--dsw-alias-label-primary)}
@@ -8775,30 +8764,21 @@ window.__ModuleLoader__.load({
       const reprobe = () => runCatalog('/reprobe')
 
       const tabs = [
-        ['nav.group.daily', [
-          ['free', t('nav.tab.free'), freePoolView(data).total],
-          ['routing', t('nav.tab.routing'), data.catalog.filter(m => m.channel === 'combo').length],
-          ['saver', t('nav.tab.saver'), null],
-        ]],
-        ['nav.group.lanes', [
-          ['eac', t('nav.tab.eac'), data.catalog.filter(m => m.channel === 'eac').length],
-          ['channels', t('nav.tab.channels'), CHANNEL_PROVIDERS.length],
-          ['aggregate', t('nav.tab.aggregate'), data.catalog.filter(m => m.channel === 'aggregate').length],
-          ['workspace', t('nav.tab.workspace'), data.catalog.filter(m => m.channel === 'subscription').length],
-          ['extensions', t('nav.tab.extensions'), (data.extensions?.installed ?? []).length],
-        ]],
-        ['nav.group.external', [
-          ['gateway', t('nav.tab.gateway'), null],
-          ['picks', t('nav.tab.picks'), null],
-        ]],
-        ['nav.group.ops', [
-          ['ledger', t('nav.tab.ledger'), null],
-          ['logs', t('nav.tab.logs'), null],
-          ['upgrade', t('nav.tab.upgrade'), null],
-          ...(FEEDBACK_ENABLED ? [['feedback', t('nav.tab.feedback'), null]] : []),
-        ]],
+        ['free', t('nav.tab.free'), freePoolView(data).total],
+        ['eac', t('nav.tab.eac'), data.catalog.filter(m => m.channel === 'eac').length],
+        ['channels', t('nav.tab.channels'), CHANNEL_PROVIDERS.length],
+        ['aggregate', t('nav.tab.aggregate'), data.catalog.filter(m => m.channel === 'aggregate').length],
+        ['workspace', t('nav.tab.workspace'), data.catalog.filter(m => m.channel === 'subscription').length],
+        ['extensions', t('nav.tab.extensions'), (data.extensions?.installed ?? []).length],
+        ['saver', t('nav.tab.saver'), null],
+        ['routing', t('nav.tab.routing'), data.catalog.filter(m => m.channel === 'combo').length],
+        ['ledger', t('nav.tab.ledger'), null],
+        ['logs', t('nav.tab.logs'), null],
+        ['gateway', t('nav.tab.gateway'), null],
+        ['upgrade', t('nav.tab.upgrade'), null],
+        ['picks', t('nav.tab.picks'), null],
+        ...(FEEDBACK_ENABLED ? [['feedback', t('nav.tab.feedback'), null]] : []),
       ]
-      const flatTabs = tabs.flatMap(([, rows]) => rows)
       const nav = h('nav', { className: 'ofm_nav' },
         h('span', { className: 'ofm_navbrand' },
           h('span', { className: 'ofm_navmark', 'aria-hidden': 'true' },
@@ -8808,22 +8788,20 @@ window.__ModuleLoader__.load({
           const steps = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }
           if (!Object.hasOwn(steps, event.key) && event.key !== 'Home' && event.key !== 'End') return
           event.preventDefault()
-          const index = event.key === 'Home' ? 0 : event.key === 'End' ? flatTabs.length - 1
-            : (flatTabs.findIndex(([id]) => id === tab) + steps[event.key] + flatTabs.length) % flatTabs.length
-          setTab(flatTabs[index][0])
+          const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1
+            : (tabs.findIndex(([id]) => id === tab) + steps[event.key] + tabs.length) % tabs.length
+          setTab(tabs[index][0])
           event.currentTarget.querySelectorAll('[role="tab"]')[index]?.focus()
         } },
           h('span', { className: 'ofm_tabglider', 'aria-hidden': 'true',
             style: { transform: `translate(${glider.left}px, ${glider.top}px)`, width: `${glider.width}px`, height: `${glider.height}px` } }),
-          tabs.map(([group, rows]) => h('div', { key: group, className: 'ofm_tabgroup', role: 'group', 'aria-label': t(group) },
-            h('span', { className: 'ofm_tabgroupname', 'aria-hidden': 'true' }, t(group)),
-            rows.map(([id, label, num]) => h('button', {
-              key: id, type: 'button', role: 'tab', 'aria-selected': tab === id ? 'true' : 'false', className: 'ofm_tab', 'data-on': tab === id ? 'true' : 'false',
-              tabIndex: tab === id ? 0 : -1,
-              ref: node => { tabRefs.current[id] = node },
-              id: `ofm-tab-${id}`, 'aria-controls': 'ofm-workspace',
-              onClick: () => setTab(id),
-            }, label, num === null ? null : h('span', { className: 'ofm_tabnum' }, String(num))))))),
+          tabs.map(([id, label, num]) => h('button', {
+            key: id, type: 'button', role: 'tab', 'aria-selected': tab === id ? 'true' : 'false', className: 'ofm_tab', 'data-on': tab === id ? 'true' : 'false',
+            tabIndex: tab === id ? 0 : -1,
+            ref: node => { tabRefs.current[id] = node },
+            id: `ofm-tab-${id}`, 'aria-controls': 'ofm-workspace',
+            onClick: () => setTab(id),
+          }, label, num === null ? null : h('span', { className: 'ofm_tabnum' }, String(num))))),
         h('div', { className: 'ofm_navtools', title: t('effects.hint') },
           h(Switch, { checked: effects, label: t('effects.enabled'), onChange: toggleEffects }),
           h(StarButton, { t })))
