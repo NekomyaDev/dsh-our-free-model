@@ -240,6 +240,61 @@ await callRoute(api(), 'POST', '/api/our-free-model/settings', { hideFreeModels:
 check('whole free group remains hidden during lane-wide refusal', await advertised(ROUTE_MAIN), [])
 await callRoute(api(), 'POST', '/api/our-free-model/settings', { hiddenModelIds: [], hideFreeModels: false, hideEacModels: false })
 
+const policySave = await callRoute(api(), 'POST', '/api/our-free-model/settings', {
+  visibilityPolicy: { mode: 'allowlist', visibleIds: [visibleId, visibleId] },
+})
+check('allowlist policy saves and canonicalizes its exact ids', policySave.json?.settings?.visibilityPolicy, {
+  mode: 'allowlist', hiddenLanes: [], visibleIds: [visibleId],
+})
+check('allowlist mode advertises only the selected model', await advertised(ROUTE_MAIN), [visibleId])
+const allowlistSummary = (await callRoute(api(), 'GET', '/api/our-free-model/summary')).json
+check('allowlist-hidden rows say why they disappeared', allowlistSummary.catalog.find(row => row.id === 'mimo-v2.6-flash-free')?.hiddenByAllowlist, true)
+check('an allowlisted row carries its family selection', allowlistSummary.catalog.find(row => row.id === visibleId)?.visibleIds, [visibleId])
+check('an allowlisted row is not mislabeled as exact-hidden',
+  allowlistSummary.catalog.find(row => row.id === visibleId)?.hiddenByUser, false)
+check('a saved id still resolves for an existing session', (await adapter.resolveModel(ROUTE_MAIN, 'mimo-v2.6-flash-free')).id, 'mimo-v2.6-flash-free')
+
+await callRoute(api(), 'POST', '/api/our-free-model/settings', { hiddenModelIds: [visibleId] })
+check('legacy exact hiding wins inside an allowlist', await advertised(ROUTE_MAIN), [])
+const blockedAllowlist = (await callRoute(api(), 'GET', '/api/our-free-model/summary')).json
+check('the blocked allowlisted row reports the exact hide separately',
+  blockedAllowlist.catalog.find(row => row.id === visibleId)?.hiddenByUser, true)
+
+await callRoute(api(), 'POST', '/api/our-free-model/settings', {
+  hiddenModelIds: [], visibilityPolicy: { mode: 'blocklist', hiddenLanes: ['free'], visibleIds: [] },
+})
+check('bulk free-lane hiding removes member rows but keeps an independently visible combo',
+  await advertised(ROUTE_MAIN), ['combo:recommended-free'])
+const laneSummary = (await callRoute(api(), 'GET', '/api/our-free-model/summary')).json
+check('the summary identifies the canonical lane',
+  laneSummary.catalog.find(row => row.id === visibleId)?.visibilityLane, 'free')
+check('and keeps the lane decision separate from exact preferences',
+  laneSummary.catalog.find(row => row.id === visibleId)?.hiddenByLane, true)
+check('a lane-hidden row is not mislabeled as exact-hidden',
+  laneSummary.catalog.find(row => row.id === visibleId)?.hiddenByUser, false)
+
+for (const policy of [
+  [], { mode: 'typo' }, { mode: 'allowlist', hiddenLanes: ['unknown'] },
+  { mode: 'blocklist', visibleIds: [''] }, { mode: 'allowlist', visibleIds: new Array(1001).fill('model') },
+  { mode: 'blocklist', extra: true },
+]) {
+  check(`invalid policy is refused atomically: ${JSON.stringify(policy).slice(0, 48)}`,
+    (await callRoute(api(), 'POST', '/api/our-free-model/settings', { visibilityPolicy: policy })).status, 400)
+}
+check('invalid policy leaves the persisted lane rule unchanged',
+  JSON.parse(fs.readFileSync(path.join(scratch, 'our-free-model', 'settings.json'), 'utf8')).visibilityPolicy,
+  { mode: 'blocklist', hiddenLanes: ['free'], visibleIds: [] })
+await callRoute(api(), 'POST', '/api/our-free-model/settings', {
+  visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
+})
+
+const { visibilityLaneOf } = await import('../src/store.js')
+check('bulk lane mapping classifies account rows only through their explicit marker', [
+  visibilityLaneOf({ id: 'loose', channel: 'some-provider' }),
+  visibilityLaneOf({ id: 'account', channel: 'some-provider', accountChannel: true }),
+  visibilityLaneOf({ id: 'combo', channel: 'combo' }),
+], ['', 'account', 'combo'])
+
 stub.api.refuseAll = false
 for (const id of LISTING) await probe(id)
 check('the next honest round hides them again', (await advertised(ROUTE_MAIN)).includes('deepseek-v4-flash-free'), false)

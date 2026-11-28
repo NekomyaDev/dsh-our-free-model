@@ -20,13 +20,13 @@ if (!chromium || !esbuild) {
     }, bundle: true, write: false, format: 'iife', define: { 'process.env.NODE_ENV': '"development"' },
   })
   const original = fs.readFileSync(new URL('../client.js', import.meta.url), 'utf8')
-  const client = original.replace('exports.__test = {', 'exports.__test = { useAsync, ModelWorkspace, ChannelCard, CHANNEL_PROVIDERS, ChainEditor, RoutingPage,')
+  const client = original.replace('exports.__test = {', 'exports.__test = { useAsync, ModelWorkspace, ChannelCard, CHANNEL_PROVIDERS, ChainEditor, RoutingPage, Roster,')
   assert.notEqual(client, original)
   const origin = 'http://127.0.0.1:41983'
   const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body><div id="root"></div>
 <script src="/react.js"></script><script>
 const React = window.fixtureReact, h = React.createElement;
-window.fixture = { mounted: true, writesAfterUnmount: 0, pending: [], intervals: new Set(), listeners: new Set(), comboWrites: [], comboMode: 'ok' };
+window.fixture = { mounted: true, writesAfterUnmount: 0, pending: [], intervals: new Set(), listeners: new Set(), comboWrites: [], comboMode: 'ok', policyWrites: [] };
 const setIntervalOriginal = window.setInterval, clearIntervalOriginal = window.clearInterval;
 window.setInterval = (...args) => { const id = setIntervalOriginal(...args); fixture.intervals.add(id); return id; };
 window.clearInterval = id => { fixture.intervals.delete(id); clearIntervalOriginal(id); };
@@ -41,7 +41,7 @@ window.__ModuleLoader__ = { load: record => {
   window.plugin = record.factory(name => name === 'react-dom' ? fixtureReactDOM : trackedReact);
 } };
 </script><script src="/client.js"></script><script>
-const { useAsync, ModelWorkspace, ChannelCard, CHANNEL_PROVIDERS, ChainEditor, RoutingPage, DICT, CSS } = plugin.__test;
+const { useAsync, ModelWorkspace, ChannelCard, CHANNEL_PROVIDERS, ChainEditor, RoutingPage, Roster, DICT, CSS } = plugin.__test;
 document.head.append(Object.assign(document.createElement('style'), { textContent: CSS }));
 fixture.recordsBefore = JSON.stringify(CHANNEL_PROVIDERS);
 localStorage.setItem('ofm:zcode:login-provider', 'zai');
@@ -56,6 +56,32 @@ function AsyncView() {
   return h('section', null, h('button', { onClick: state.reload }, 'Reload fixture'),
     h('output', { id: 'snapshot' }, JSON.stringify(state)));
 }
+const policyRows = [
+  { id: 'free', name: 'Free fixture', channel: 'anonymous', visibilityLane: 'free', route: 'our-free-model',
+    hiddenByUser: false, hiddenByGroup: false, hiddenByLane: false, hiddenByAllowlist: false,
+    hiddenIds: [], visibleIds: [], availability: 'available' },
+  { id: 'kilo-model', name: 'Kilo fixture', channel: 'kilo', visibilityLane: 'kilo', route: 'our-free-model',
+    hiddenByUser: false, hiddenByGroup: false, hiddenByLane: false, hiddenByAllowlist: false,
+    hiddenIds: [], visibleIds: [], availability: 'available' },
+  { id: 'combo:kilo', name: 'Kilo chain', channel: 'combo', visibilityLane: 'combo', route: 'our-free-model',
+    hiddenByUser: false, hiddenByGroup: false, hiddenByLane: false, hiddenByAllowlist: true,
+    hiddenIds: [], visibleIds: ['combo:kilo'], availability: 'available' },
+];
+function BulkVisibility({ t }) {
+  const [policy, setPolicy] = React.useState({ mode: 'blocklist', hiddenLanes: [], visibleIds: [] });
+  fixture.policy = policy;
+  const apply = patch => {
+    fixture.policyWrites.push(patch);
+    if (patch.visibilityPolicy) setPolicy(patch.visibilityPolicy);
+  };
+  return h(Roster, {
+    t, onApply: apply,
+    summary: {
+      settings: { hiddenModelIds: [], hideFreeModels: false, hideEacModels: false, visibilityPolicy: policy },
+      catalog: policyRows,
+    },
+  });
+}
 function App() {
   const [language, setLanguage] = React.useState('en');
   fixture.language = setLanguage;
@@ -63,6 +89,7 @@ function App() {
   return h('main', { className: 'ofm_root' },
     mode === 'async' ? h(AsyncView) : mode === 'workspace' ? h(ModelWorkspace, { t, summary })
       : mode === 'routing' ? h(RoutingPage, { t })
+      : mode === 'bulk' ? h(BulkVisibility, { t })
       : h(React.Fragment, null,
         h('section', { id: 'channels' }, CHANNEL_PROVIDERS.map(channel => h(ChannelCard, { key: channel.id, channel, t, compact: true, rpc: null }))),
         h('section', { id: 'draft' }, h(ChainEditor, { t, chain, models, onSave() {}, onCancel() {} }))));
@@ -113,6 +140,9 @@ root.render(h(App));
           return route.fulfill({ json: {
             ok: true, combos: body.combos, usable: body.combos.map(row => ({ id: row.id, models: row.models })),
           } })
+        }
+        if (mode === 'bulk' && url.pathname === '/api/our-free-model/perf') {
+          return route.fulfill({ json: { figures: {}, fetchedAt: 0 } })
         }
       }
       unexpected.push(url.href)
@@ -239,6 +269,35 @@ root.render(h(App));
       await page.getByRole('alert').waitFor()
       assert.match(await page.getByRole('alert').innerText(), /Synthetic import refusal/)
       assert.equal(await page.evaluate(() => fixture.comboWrites.length), 2)
+      await verify()
+    })
+    await test('rendered bulk visibility supports lane actions and an explicit allowlist', { timeout: 30000 }, async check => {
+      const { page, settle, verify } = await open(check, 'bulk')
+      await page.getByText('Free fixture', { exact: true }).waitFor()
+      const freeLane = page.locator('.ofm_lane').filter({ hasText: 'Anonymous free' })
+      await freeLane.getByRole('button', { name: 'Hide this lane' }).click()
+      await page.waitForFunction(() => fixture.policyWrites.length === 1)
+      assert.deepEqual(await page.evaluate(() => fixture.policyWrites[0]), {
+        visibilityPolicy: { mode: 'blocklist', hiddenLanes: ['free'], visibleIds: [] },
+      })
+      await settle()
+
+      page.once('dialog', dialog => {
+        assert.match(dialog.message(), /Show only the 1 models in “Chains”/)
+        dialog.accept()
+      })
+      const comboLane = page.locator('.ofm_lane').filter({ hasText: 'Chains' })
+      await comboLane.getByRole('button', { name: 'Only this lane' }).click()
+      await page.waitForFunction(() => fixture.policyWrites.length === 2)
+      assert.deepEqual(await page.evaluate(() => fixture.policyWrites[1]), {
+        visibilityPolicy: { mode: 'allowlist', hiddenLanes: ['free'], visibleIds: ['combo:kilo'] },
+      })
+      await settle()
+      assert.equal(await page.evaluate(() => fixture.policy.mode), 'allowlist')
+
+      await page.setViewportSize({ width: 420, height: 900 })
+      await settle()
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth), true)
       await verify()
     })
     console.log(`client-async-locale-ui: Chromium ${browser.version()}, React ${require('react/package.json').version}; synthetic fixtures only`)

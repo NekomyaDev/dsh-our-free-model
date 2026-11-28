@@ -44,7 +44,9 @@ function ClientRow({ client, summary, index, onChanged }: { client: Client; summ
   const live = useRef(true)
   const lock = useRef(false)
   useEffect(() => () => { live.current = false }, [])
-  const availableModels = useMemo(() => summary.catalog.filter(row => row.routable && !row.hiddenByUser && !row.hiddenByGroup), [summary.catalog])
+  const availableModels = useMemo(() => summary.catalog.filter(row =>
+    row.routable && !row.hiddenByUser && !row.hiddenByGroup && !row.hiddenByLane && !row.hiddenByAllowlist,
+  ), [summary.catalog])
   const dirty = executable !== client.executable || cwd !== client.cwd || model !== client.model || mode !== client.mode
   // 接入开关：magpie 的 agent 行只表达"是否接入"，落盘仍走同一个保存接口。
   // 关闭时不删配置，只把模型清空 —— 用户重新打开不需要再选一遍。

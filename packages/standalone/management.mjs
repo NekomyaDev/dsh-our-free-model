@@ -6,7 +6,10 @@ import { routableModelIds } from '../../src/core/completion.js'
 import { generateKey } from '../../src/forward.js'
 import { structuralRejection } from '../../src/trust.js'
 import { openLoginTerminal } from './login-terminal.mjs'
-import { publicModelVisibility, validateModelVisibility, isModelHidden, isModelHiddenByGroup, hiddenIdsFor } from '../../src/store.js'
+import {
+  publicModelVisibility, validateModelVisibility, isModelHiddenByGroup, isModelHiddenByLane,
+  isModelHiddenByAllowlist, hiddenIdsFor, visibleIdsFor, visibilityLaneOf,
+} from '../../src/store.js'
 import { freeLaneExitSnapshot, clearLaneExits, laneProxyEcho } from '../../src/egress.js'
 import { createWorkbench } from './workbench.mjs'
 import { createProviderManagement } from './providers.mjs'
@@ -293,9 +296,13 @@ export function createManagement({ stores, runtime, channels, eac, subscriptions
         vision: entry.vision === true, reasoning: entry.reasoning === true || (entry.reasoning !== null && typeof entry.reasoning === 'object'),
         contextWindow: entry.contextWindow ?? entry.context_window, maxOutput: entry.maxOutput ?? entry.max_tokens,
         routable: routableRows === undefined ? routableIds.has(entry.id) : routableRows.has(entry),
-        hiddenByUser: isModelHidden(entry, state.settings, state.visibility),
+        hiddenByUser: hiddenIdsFor(entry, state.visibility).length > 0,
         hiddenIds: hiddenIdsFor(entry, state.visibility),
+        visibleIds: visibleIdsFor(entry, state.visibility),
         hiddenByGroup: isModelHiddenByGroup(entry, state.settings),
+        hiddenByLane: isModelHiddenByLane(entry, state.visibility),
+        hiddenByAllowlist: isModelHiddenByAllowlist(entry, state.visibility),
+        visibilityLane: visibilityLaneOf(entry),
         ...measured, availability: measured.availabilitySource === 'listing' ? 'listed' : measured.availability,
       }) }),
     }

@@ -527,6 +527,26 @@ try {
       'an unrelated Kilo row receives no hidden ids and is not leaked the blacklist')
     assert.equal(summary.catalog.find(row => row.id === model).routable, false)
     assert.equal(JSON.stringify(summary).includes(key), false)
+    assert.equal((await request('/api/management/settings', {
+      body: { hiddenModelIds: [], hideFreeModels: false, hideEacModels: false,
+        visibilityPolicy: { mode: 'blocklist', hiddenLanes: ['kilo'], visibleIds: [] } },
+    })).status, 200)
+    const laneSummary = await (await request('/api/management/summary')).json()
+    const laneFree = laneSummary.catalog.find(row => row.id === model)
+    const laneKilo = laneSummary.catalog.find(row => row.id === kilo)
+    assert.deepEqual([laneFree.visibilityLane, laneFree.hiddenByLane, laneFree.hiddenByAllowlist], ['free', false, false])
+    assert.deepEqual([laneKilo.visibilityLane, laneKilo.hiddenByLane, laneKilo.routable], ['kilo', true, false])
+    assert.equal((await request('/api/management/settings', {
+      body: { visibilityPolicy: { mode: 'allowlist', hiddenLanes: [], visibleIds: [model] } },
+    })).status, 200)
+    const allowSummary = await (await request('/api/management/summary')).json()
+    const allowFree = allowSummary.catalog.find(row => row.id === model)
+    const allowKilo = allowSummary.catalog.find(row => row.id === kilo)
+    assert.deepEqual([allowFree.hiddenByAllowlist, allowFree.visibleIds, allowFree.routable], [false, [model], true])
+    assert.deepEqual([allowKilo.hiddenByAllowlist, allowKilo.visibleIds, allowKilo.routable], [true, [], false])
+    assert.equal((await request('/api/management/settings', {
+      body: { visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] } },
+    })).status, 200)
     const historical = await request('/v1/chat/completions', {
       cookie: '',
       headers: { authorization: `Bearer ${key}` },

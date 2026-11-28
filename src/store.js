@@ -155,6 +155,12 @@ export function dayKey(at = Date.now()) {
   return `${y}-${m}-${d}`
 }
 
+export const VISIBILITY_LANES = Object.freeze([
+  'free', 'kilo', 'eac', 'aggregate', 'subscription', 'combo', 'account', 'extension',
+])
+const VISIBILITY_LANE_ORDER = new Map(VISIBILITY_LANES.map((lane, index) => [lane, index]))
+const VISIBILITY_LANE_SET = new Set(VISIBILITY_LANES)
+
 export const SETTINGS_INITIAL = {
   version: 1,
   /** Master switch: when off the routes stay registered but serve nothing. */
@@ -174,6 +180,14 @@ export const SETTINGS_INITIAL = {
   hiddenModelIds: [],
   hideFreeModels: false,
   hideEacModels: false,
+  /** Optional bulk rule layered over the legacy exact/group rules. In
+   *  allowlist mode an unselected row stays advertised only if no other
+   *  visibility rule hides it. */
+  visibilityPolicy: {
+    mode: 'blocklist',
+    hiddenLanes: [],
+    visibleIds: [],
+  },
   /** Minutes between background catalog refreshes. Automatic availability
    *  probing is disabled by owner policy; only the manual reprobe button sends
    *  probe requests. Since 2.8.1 this cadence also cannot re-fetch the listing
@@ -309,12 +323,28 @@ export const SETTINGS_INITIAL = {
 const validHiddenModelId = value => typeof value === 'string' && value.length > 0
   && value.length <= 300 && value === value.trim() && !/[\u0000-\u001f\u007f]/.test(value)
 
+const normalizedIds = value => [...new Set((Array.isArray(value) ? value : [])
+  .filter(validHiddenModelId))].slice(0, 1000)
+
+const normalizedLanes = value => [...new Set((Array.isArray(value) ? value : [])
+  .filter(lane => VISIBILITY_LANE_SET.has(lane)))]
+  .sort((left, right) => VISIBILITY_LANE_ORDER.get(left) - VISIBILITY_LANE_ORDER.get(right))
+
+export function normalizeVisibilityPolicy(value) {
+  return {
+    mode: value?.mode === 'allowlist' ? 'allowlist' : 'blocklist',
+    hiddenLanes: normalizedLanes(value?.hiddenLanes),
+    visibleIds: normalizedIds(value?.visibleIds),
+  }
+}
+
 export function publicModelVisibility(settings) {
   return {
     hiddenModelIds: [...new Set((Array.isArray(settings?.hiddenModelIds) ? settings.hiddenModelIds : [])
       .filter(validHiddenModelId))].slice(0, 1000),
     hideFreeModels: settings?.hideFreeModels === true,
     hideEacModels: settings?.hideEacModels === true,
+    visibilityPolicy: normalizeVisibilityPolicy(settings?.visibilityPolicy),
   }
 }
 
@@ -334,6 +364,29 @@ export function validateModelVisibility(patch) {
     }
     result[key] = Array.isArray(value) ? [...new Set(value)] : value
   }
+  if (Object.hasOwn(patch, 'visibilityPolicy')) {
+    const policy = patch.visibilityPolicy
+    if (policy === null || typeof policy !== 'object' || Array.isArray(policy)) {
+      throw Object.assign(new TypeError('visibilityPolicy must be a JSON object'), { statusCode: 400 })
+    }
+    for (const key of Object.keys(policy)) {
+      if (!['mode', 'hiddenLanes', 'visibleIds'].includes(key)) {
+        throw Object.assign(new TypeError(`unknown visibilityPolicy field "${key}"`), { statusCode: 400 })
+      }
+    }
+    if (Object.hasOwn(policy, 'mode') && !['blocklist', 'allowlist'].includes(policy.mode)) {
+      throw Object.assign(new TypeError('visibilityPolicy.mode must be "blocklist" or "allowlist"'), { statusCode: 400 })
+    }
+    if (Object.hasOwn(policy, 'hiddenLanes')
+      && (!Array.isArray(policy.hiddenLanes) || policy.hiddenLanes.some(lane => !VISIBILITY_LANE_SET.has(lane)))) {
+      throw Object.assign(new TypeError(`visibilityPolicy.hiddenLanes must contain only ${VISIBILITY_LANES.join(', ')}`), { statusCode: 400 })
+    }
+    if (Object.hasOwn(policy, 'visibleIds')
+      && (!Array.isArray(policy.visibleIds) || policy.visibleIds.length > 1000 || policy.visibleIds.some(id => !validHiddenModelId(id)))) {
+      throw Object.assign(new TypeError('visibilityPolicy.visibleIds must be an array of at most 1000 nonempty model ids (up to 300 characters each)'), { statusCode: 400 })
+    }
+    result.visibilityPolicy = normalizeVisibilityPolicy(policy)
+  }
   return result
 }
 
@@ -347,6 +400,9 @@ export function buildModelVisibility(settings, familyKeysById = new Map()) {
   const storedIds = new Set()
   const familyKeys = familyKeysById !== null && typeof familyKeysById?.get === 'function' ? familyKeysById : new Map()
   const hiddenIdsByFamily = new Map()
+  const visibleIds = new Set()
+  const visibleIdsByFamily = new Map()
+  const policy = normalizeVisibilityPolicy(settings?.visibilityPolicy)
   for (const id of Array.isArray(settings?.hiddenModelIds) ? settings.hiddenModelIds : []) {
     if (!validHiddenModelId(id) || storedIds.has(id)) continue
     storedIds.add(id)
@@ -356,7 +412,20 @@ export function buildModelVisibility(settings, familyKeysById = new Map()) {
     ids.push(id)
     hiddenIdsByFamily.set(family, ids)
   }
-  return { storedIds, familyKeysById: familyKeys, hiddenIdsByFamily }
+  for (const id of policy.visibleIds) {
+    if (visibleIds.has(id)) continue
+    visibleIds.add(id)
+    const family = familyKeys.get(id)
+    if (family === null || family === undefined) continue
+    const ids = visibleIdsByFamily.get(family) ?? []
+    ids.push(id)
+    visibleIdsByFamily.set(family, ids)
+  }
+  return {
+    storedIds, familyKeysById: familyKeys, hiddenIdsByFamily,
+    policy, hiddenLanes: new Set(policy.hiddenLanes),
+    visibleIds, visibleIdsByFamily,
+  }
 }
 
 /** Stored hidden ids belonging to this row, never the whole settings array. */
@@ -370,6 +439,26 @@ export function hiddenIdsFor(entry, visibility) {
   return visibility.storedIds.has(id) ? [id] : []
 }
 
+/** Stored allowlist ids belonging to this row, never the whole settings array. */
+export function visibleIdsFor(entry, visibility) {
+  const id = typeof entry?.id === 'string' ? entry.id : ''
+  const policy = visibility?.policy ?? normalizeVisibilityPolicy(visibility?.visibilityPolicy)
+  if (id === '' || policy.mode !== 'allowlist') return []
+  const family = visibility?.familyKeysById?.get(id)
+  if (family !== null && family !== undefined) {
+    return [...(visibility?.visibleIdsByFamily?.get(family) ?? [])]
+  }
+  if (visibility?.visibleIds instanceof Set) return visibility.visibleIds.has(id) ? [id] : []
+  return policy.visibleIds.includes(id) ? [id] : []
+}
+
+/** The closed lane used by bulk visibility controls. Arbitrary providers stay unclassified. */
+export function visibilityLaneOf(entry) {
+  if (entry?.accountChannel === true) return 'account'
+  if (!entry?.channel || entry.channel === 'anonymous' || entry.channel === 'free') return 'free'
+  return VISIBILITY_LANE_SET.has(entry.channel) ? entry.channel : ''
+}
+
 /** Does one of the two group switches hide this row, independently of saved ids? */
 export function isModelHiddenByGroup(entry, settings) {
   return (settings?.hideFreeModels === true && (!entry?.channel || entry.channel === 'anonymous' || entry.channel === 'kilo'
@@ -377,9 +466,29 @@ export function isModelHiddenByGroup(entry, settings) {
     || (settings?.hideEacModels === true && entry?.channel === 'eac')
 }
 
+/** Does the bulk lane policy hide this row? */
+export function isModelHiddenByLane(entry, settingsOrVisibility) {
+  const lane = visibilityLaneOf(entry)
+  if (lane === '') return false
+  const hiddenLanes = settingsOrVisibility?.hiddenLanes instanceof Set
+    ? settingsOrVisibility.hiddenLanes
+    : new Set(normalizeVisibilityPolicy(settingsOrVisibility?.visibilityPolicy).hiddenLanes)
+  return hiddenLanes.has(lane)
+}
+
+/** In allowlist mode, a row is hidden unless its exact/family id is selected. */
+export function isModelHiddenByAllowlist(entry, settingsOrVisibility) {
+  const policy = settingsOrVisibility?.policy
+    ?? normalizeVisibilityPolicy(settingsOrVisibility?.visibilityPolicy)
+  return policy.mode === 'allowlist' && visibleIdsFor(entry, settingsOrVisibility).length === 0
+}
+
 export function isModelHidden(entry, settings, visibility) {
-  return hiddenIdsFor(entry, visibility ?? buildModelVisibility(settings)).length > 0
+  const index = visibility ?? buildModelVisibility(settings)
+  return hiddenIdsFor(entry, index).length > 0
     || isModelHiddenByGroup(entry, settings)
+    || isModelHiddenByLane(entry, index)
+    || isModelHiddenByAllowlist(entry, index)
 }
 
 export const STATS_INITIAL = {

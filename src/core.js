@@ -689,7 +689,8 @@ function createModelRuntime({
           ...snapshot.settings,
           hiddenModelIds: [],
           hideFreeModels: false,
-          hideEacModels: false
+          hideEacModels: false,
+          visibilityPolicy: { mode: "blocklist", hiddenLanes: [], visibleIds: [] }
         };
         return { ...snapshot, membership: computeMembership(
           snapshot.catalog,

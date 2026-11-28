@@ -146,7 +146,10 @@ for (const patch of [{ hideFreeModels: 1 }, { hideEacModels: null }, { hiddenMod
   assert.throws(() => validateModelVisibility(patch), error => error.statusCode === 400)
 }
 assert.deepEqual(publicModelVisibility({ hiddenModelIds: ['free', 'free', null], forwardKey: 'private' }),
-  { hiddenModelIds: ['free'], hideFreeModels: false, hideEacModels: false })
+  {
+    hiddenModelIds: ['free'], hideFreeModels: false, hideEacModels: false,
+    visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
+  })
 
 const visibilitySettings = ids => ({ hiddenModelIds: ids })
 const mergeForView = rows => {
@@ -511,6 +514,49 @@ for (const language of ['zh', 'en']) {
 }
 
 cells.length = 0
+const policyWrites = []
+const policyRows = [
+  { id: 'free', name: 'Free fixture', channel: 'anonymous', visibilityLane: 'free', route: 'our-free-model',
+    hiddenByUser: false, hiddenByGroup: false, hiddenByLane: false, hiddenByAllowlist: true,
+    hiddenIds: [], visibleIds: [], availability: 'available' },
+  { id: 'combo:kilo', name: 'Kilo chain', channel: 'combo', visibilityLane: 'combo', route: 'our-free-model',
+    hiddenByUser: false, hiddenByGroup: false, hiddenByLane: false, hiddenByAllowlist: true,
+    hiddenIds: [], visibleIds: ['combo:kilo'], availability: 'available' },
+]
+const policySummary = {
+  settings: {
+    hiddenModelIds: [], hideFreeModels: false, hideEacModels: false,
+    visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
+  },
+  catalog: policyRows,
+}
+let policyRoster = render(Roster, { summary: policySummary, t, onApply: patch => policyWrites.push(patch) })
+const laneCards = nodes(policyRoster).filter(node => node.props.className === 'ofm_lane')
+assert.equal(laneCards.length, 2)
+const freeHide = nodes(laneCards[0]).find(node => node.type?.name === 'Button' && node.children.includes(t('visibility.hideLane')))
+freeHide.props.onClick()
+verifyCorrection('bulk lane visibility changes only the lane policy',
+  policyWrites.pop(),
+  { visibilityPolicy: { mode: 'blocklist', hiddenLanes: ['free'], visibleIds: [] } })
+const comboOnly = nodes(laneCards[1]).find(node => node.type?.name === 'Button' && node.children.includes(t('visibility.onlyLane')))
+comboOnly.props.onClick()
+verifyCorrection('only-lane creates an exact allowlist and keeps the combo independent of its members',
+  policyWrites.pop(),
+  { visibilityPolicy: { mode: 'allowlist', hiddenLanes: [], visibleIds: ['combo:kilo'] } })
+const allowlistSwitch = nodes(policyRoster).find(node => node.props.label === t('visibility.blocklist'))
+allowlistSwitch.props.onChange()
+verifyCorrection('entering allowlist initializes it from the currently routable rows',
+  policyWrites.pop(),
+  { visibilityPolicy: { mode: 'allowlist', hiddenLanes: [], visibleIds: ['free', 'combo:kilo'] } })
+policySummary.settings.visibilityPolicy = { mode: 'allowlist', hiddenLanes: [], visibleIds: ['combo:kilo'] }
+policyRoster = render(Roster, { summary: policySummary, t, onApply: patch => policyWrites.push(patch) })
+const allowlistCard = render(ModelCard, nodes(policyRoster).find(node => node.type === ModelCard).props)
+nodes(allowlistCard).find(node => node.props.label === t('visibility.showModel')).props.onChange()
+verifyCorrection('the per-model control adds a row to the allowlist instead of mutating the blocklist',
+  policyWrites.pop(),
+  { visibilityPolicy: { mode: 'allowlist', hiddenLanes: [], visibleIds: ['combo:kilo', 'free'] } })
+
+cells.length = 0
 const familyWrites = []
 const foreignSaved = [...foreignHiddenIds, 'foreign-probe']
 const familyRow = sourceBeam.map(row => row.id)
@@ -569,12 +615,33 @@ if (transformSync) {
 const modelsSource = fs.readFileSync(new URL('../packages/standalone/frontend/models.tsx', import.meta.url), 'utf8')
 const modelsBody = modelsSource.slice(modelsSource.indexOf('const availabilityNames')).replace('export function Models', 'function Models')
 cells.length = 0
-const standaloneSummary = { settings: { enabled: true, hiddenModelIds: [], hideFreeModels: false, hideEacModels: false },
-  catalog: [{ id: 'free', name: 'Free', channel: 'anonymous', routable: true }, { id: 'account', name: 'Account', channel: 'lobsterai', routable: true }] }
+const standaloneSummary = { settings: {
+  enabled: true, hiddenModelIds: [], hideFreeModels: false, hideEacModels: false,
+  visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
+}, catalog: [
+  { id: 'free', name: 'Free', channel: 'anonymous', visibilityLane: 'free', routable: true },
+  { id: 'kilo', name: 'Kilo', channel: 'kilo', visibilityLane: 'kilo', routable: true },
+  { id: 'combo:kilo', name: 'Kilo combo', channel: 'combo', visibilityLane: 'combo', routable: true },
+  { id: 'account', name: 'Account', channel: 'lobsterai', visibilityLane: 'account', routable: true },
+] }
 const savedPatches = []
+const recalculateVisibility = () => {
+  const settings = standaloneSummary.settings
+  const policy = settings.visibilityPolicy ?? { mode: 'blocklist', hiddenLanes: [], visibleIds: [] }
+  const hidden = new Set(settings.hiddenModelIds ?? [])
+  for (const model of standaloneSummary.catalog) {
+    model.hiddenByUser = hidden.has(model.id)
+    model.hiddenByGroup = (settings.hideFreeModels === true && model.visibilityLane === 'free')
+      || (settings.hideEacModels === true && model.visibilityLane === 'eac')
+    model.hiddenByLane = policy.hiddenLanes.includes(model.visibilityLane)
+    model.hiddenByAllowlist = policy.mode === 'allowlist' && !policy.visibleIds.includes(model.id)
+  }
+}
+recalculateVisibility()
 const context = {
   ...react, h: react.createElement, Fragment: 'fragment', providers: [], filterModels, visibilityCopy, t: consoleT, numLocale, providerText,
   document: { documentElement: { lang: 'en' } },
+  window: { confirm: () => true },
   defaultRangeExtractor: () => [],
   useVirtualizer: ({ count }) => ({ getTotalSize: () => count * 112,
     getVirtualItems: () => Array.from({ length: count }, (_, index) => ({ index, key: index, start: index * 112 })), measureElement() {} }),
@@ -587,45 +654,58 @@ const standaloneProps = { active: true, summary: standaloneSummary, host: {
   saveSettings: async patch => {
     savedPatches.push(JSON.parse(JSON.stringify(patch)))
     Object.assign(standaloneSummary.settings, patch)
-    for (const model of standaloneSummary.catalog) {
-      model.hiddenByUser = isModelHidden(model, standaloneSummary.settings)
-      model.hiddenByGroup = isModelHidden(model, { ...standaloneSummary.settings, hiddenModelIds: [] })
-    }
+    recalculateVisibility()
   },
   refresh: async () => {}, error: error => { throw error },
 } }
 let standaloneTree = render(context.Page, standaloneProps)
-nodes(standaloneTree).find(node => node.props['aria-label'] === 'Hide model：free').props.onClick()
+const rowAction = (tree, id, action) => nodes(tree).find(node =>
+  node.props['aria-label'] === `${action}：${id}` && typeof node.props.onClick === 'function')
+rowAction(standaloneTree, 'free', 'Hide model').props.onClick()
 await new Promise(resolve => setImmediate(resolve))
 assert.deepEqual(savedPatches.pop(), { hiddenModelIds: ['free'] })
 standaloneTree = render(context.Page, standaloneProps)
-const group = nodes(standaloneTree).find(node => node.type === 'input' && node.props.role === 'switch')
-group.props.onChange({ target: { checked: true } })
+nodes(standaloneTree).find(node => node.props.title === 'Hide Kilo' && typeof node.props.onClick === 'function').props.onClick()
 await new Promise(resolve => setImmediate(resolve))
-assert.deepEqual(savedPatches.pop(), { hideFreeModels: true })
+assert.deepEqual(savedPatches.pop(), {
+  visibilityPolicy: { mode: 'blocklist', hiddenLanes: ['kilo'], visibleIds: [] },
+})
 standaloneTree = render(context.Page, standaloneProps)
-assert.equal(nodes(standaloneTree).find(node => node.props['aria-label'] === 'Show model：free').props.disabled, true)
-assert.equal(nodes(standaloneTree).some(node => /(?:Hide|Show) model：account/.test(node.props['aria-label'] ?? '')), false)
-nodes(standaloneTree).find(node => node.type === 'input' && node.props.role === 'switch').props.onChange({ target: { checked: false } })
+nodes(standaloneTree).find(node => node.props.title === 'Only Free anonymous' && typeof node.props.onClick === 'function').props.onClick()
 await new Promise(resolve => setImmediate(resolve))
-assert.deepEqual(Array.from(standaloneSummary.settings.hiddenModelIds), ['free'], 'group restore preserves individual choices')
+assert.deepEqual(savedPatches.pop(), {
+  visibilityPolicy: { mode: 'allowlist', hiddenLanes: ['kilo'], visibleIds: ['free'] },
+}, 'only-lane keeps independent lane rules while selecting exactly that lane')
 standaloneTree = render(context.Page, standaloneProps)
-nodes(standaloneTree).find(node => node.props['aria-label'] === 'Show model：free').props.onClick()
+rowAction(standaloneTree, 'account', 'Show model').props.onClick()
 await new Promise(resolve => setImmediate(resolve))
-assert.deepEqual(savedPatches.pop(), { hiddenModelIds: [] })
+assert.deepEqual(savedPatches.pop(), {
+  visibilityPolicy: { mode: 'allowlist', hiddenLanes: ['kilo'], visibleIds: ['free', 'account'] },
+}, 'allowlist mode adds the exact account row without widening to unrelated provider ids')
+standaloneTree = render(context.Page, standaloneProps)
+assert.ok(rowAction(standaloneTree, 'account', 'Hide model'), 'account rows expose their own selection control without provider-prefix guessing')
+nodes(standaloneTree).find(node => node.props.title === 'Only Combos' && typeof node.props.onClick === 'function').props.onClick()
+await new Promise(resolve => setImmediate(resolve))
+assert.deepEqual(savedPatches.pop(), {
+  visibilityPolicy: { mode: 'allowlist', hiddenLanes: ['kilo'], visibleIds: ['combo:kilo'] },
+}, 'a Kilo-backed combo is controllable independently from the Kilo member lane')
+standaloneTree = render(context.Page, standaloneProps)
 const standaloneFamily = ['beam-free', 'opencode/beam-free', 'reflection/beam-free']
+standaloneSummary.settings.visibilityPolicy = { mode: 'blocklist', hiddenLanes: [], visibleIds: [] }
 standaloneSummary.settings.hiddenModelIds = [...standaloneFamily, ...foreignSaved]
+recalculateVisibility()
 const standaloneFamilyVisibility = directoryVisibility(sourceBeam, standaloneSummary.settings)
 standaloneSummary.catalog.unshift({ id: 'beam-free', name: 'Beam', channel: 'anonymous', routable: true,
+  visibilityLane: 'free',
   hiddenByUser: true, hiddenByGroup: false,
   hiddenIds: hiddenIdsFor({ id: 'beam-free' }, standaloneFamilyVisibility) })
 cells.length = 0
 standaloneTree = render(context.Page, standaloneProps)
-nodes(standaloneTree).find(node => node.props['aria-label'] === 'Show model：beam-free').props.onClick()
+rowAction(standaloneTree, 'beam-free', 'Show model').props.onClick()
 await new Promise(resolve => setImmediate(resolve))
 verifyCorrection('the standalone source restore preserves foreign saved ids', savedPatches.pop(),
   { hiddenModelIds: foreignSaved })
-console.log('ok  standalone actual model-row and group controls save preferences and isolate account channels')
+console.log('ok  standalone visibility policy, lane bulk actions, combo independence and account controls save preferences')
 } else {
   console.log('ok  standalone TSX visibility controls skipped: esbuild is not installed')
 }
@@ -639,38 +719,8 @@ assert.ok(modelAsset, 'assets.json names a models chunk')
 verifyCorrection('the served models asset was rebuilt from the current source',
   modelAsset !== 'models-DKeafDX5.js', true)
 const modelSource = fs.readFileSync(new URL(modelAsset, standaloneWeb), 'utf8')
-const hiddenMarker = modelSource.indexOf('.settings.hiddenModelIds??[]')
-const clickStart = modelSource.lastIndexOf('onClick:', hiddenMarker)
-const clickEnd = modelSource.indexOf(',children:', hiddenMarker)
-assert.ok(hiddenMarker > 0 && clickStart > 0 && clickEnd > clickStart, 'the served model visibility handler is present')
-const shippedHandler = modelSource.slice(clickStart + 'onClick:'.length, clickEnd)
-const summaryName = shippedHandler.match(/([A-Za-z_$][\w$]*)\.settings\.hiddenModelIds/)?.[1]
-const saveName = shippedHandler.match(/([A-Za-z_$][\w$]*)\(\{hiddenModelIds:/)?.[1]
-const modelName = shippedHandler.match(/([A-Za-z_$][\w$]*)\.hiddenByUser/)?.[1]
-  ?? shippedHandler.match(/([A-Za-z_$][\w$]*)\.id\)/)?.[1]
-assert.ok(summaryName && saveName && modelName, 'the served visibility handler can be invoked directly')
-const servedHidden = ['beam-free', 'reflection/beam-free', ...foreignSaved]
-const servedSettings = { hiddenModelIds: servedHidden }
-const servedVisibility = directoryVisibility(sourceBeam, servedSettings)
-const servedKilo = { id: 'reflection/beam-free', hiddenByUser: true,
-  hiddenIds: hiddenIdsFor({ id: 'reflection/beam-free', channel: 'kilo' }, servedVisibility) }
-const invokeServedVisibility = (settings, model) => {
-  let write
-  new Function(summaryName, saveName, modelName, `return (${shippedHandler})`)(
-    { settings }, patch => { write = patch }, model)()
-  return write
-}
-verifyCorrection('the served standalone asset restores the family from a saved Kilo row',
-  invokeServedVisibility(servedSettings, servedKilo), { hiddenModelIds: foreignSaved })
-for (const family of providerPrefixFamilies) {
-  for (const [saved, clicked] of [family, [family[1], family[0]]]) {
-    const settings = { hiddenModelIds: [saved.id], aggregate: aggregateOff }
-    const hiddenIds = hiddenIdsFor(clicked, directoryVisibility(family, settings))
-    verifyCorrection(`served restore finds ${saved.id} from ${clicked.id}`, hiddenIds, [saved.id])
-    verifyCorrection(`served restore clears the shared-prefix family from ${clicked.id}`,
-      invokeServedVisibility(settings, { ...clicked, hiddenByUser: true, hiddenIds }),
-      { hiddenModelIds: [] })
-  }
+for (const marker of ['visibilityPolicy', 'hiddenLanes', 'hiddenByAllowlist', 'visibleIds']) {
+  verifyCorrection(`the served models asset contains ${marker}`, modelSource.includes(marker), true)
 }
 
 assert.deepEqual(correctionFailures, [], `review correction checks failed: ${correctionFailures.join(', ')}`)

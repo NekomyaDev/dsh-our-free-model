@@ -16,11 +16,37 @@ server.listen(0, '127.0.0.1'); await once(server, 'listening')
 const baseUrl = `http://127.0.0.1:${server.address().port}`
 management.setPort(server.address().port)
 const browser = await chromium.launch({ headless: true })
-const settings = { enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false, defaultMaxTokens: 32768, probeIntervalMinutes: 15 }
+const settings = {
+  enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false,
+  defaultMaxTokens: 32768, probeIntervalMinutes: 15,
+  hiddenModelIds: [], hideFreeModels: false, hideEacModels: false,
+  visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
+}
 let loggedIn = false, key = 'ofm-ui-isolated-key', summaryReads = 0, disclaimerAcknowledged = false, requestLang = '', modelTestStarted
+const catalog = () => {
+  const policy = settings.visibilityPolicy ?? { mode: 'blocklist', hiddenLanes: [], visibleIds: [] }
+  const rows = [
+    { id: 'fixture/model', name: '测试模型', channel: 'anonymous', visibilityLane: 'free', availability: 'available' },
+    { id: 'kilo/fixture', name: 'Kilo fixture', channel: 'kilo', visibilityLane: 'kilo', availability: 'available' },
+    { id: 'combo:kilo', name: 'Kilo combo', channel: 'combo', visibilityLane: 'combo', availability: 'available' },
+    { id: 'account:fixture', name: 'Account fixture', channel: 'lobsterai', visibilityLane: 'account', availability: 'available' },
+  ]
+  return rows.map(model => {
+    const hiddenByUser = settings.hiddenModelIds.includes(model.id)
+    const hiddenByGroup = settings.hideFreeModels && (model.visibilityLane === 'free' || model.visibilityLane === 'kilo')
+    const hiddenByLane = policy.hiddenLanes.includes(model.visibilityLane)
+    const hiddenByAllowlist = policy.mode === 'allowlist' && !policy.visibleIds.includes(model.id)
+    return {
+      ...model, hiddenByUser, hiddenByGroup, hiddenByLane, hiddenByAllowlist,
+      hiddenIds: hiddenByUser ? [model.id] : [],
+      visibleIds: policy.mode === 'allowlist' && policy.visibleIds.includes(model.id) ? [model.id] : [],
+      routable: !(hiddenByUser || hiddenByGroup || hiddenByLane || hiddenByAllowlist),
+    }
+  })
+}
 const summary = () => ({ version: 'test', baseUrl, dataDir: 'isolated', networkMode: 'fixture', automaticRefresh: false,
   catalogSyncedAt: 0, settings: { ...settings }, channels: { state: 'ready' }, eacAuth: { local: false },
-  catalog: [{ id: 'fixture/model', name: '测试模型', channel: 'anonymous', routable: true, availability: 'available' }] })
+  catalog: catalog() })
 const errors = []
 try {
   const context = await browser.newContext({ permissions: ['clipboard-read', 'clipboard-write'] })
@@ -86,8 +112,23 @@ try {
   await page.locator('.ofm-sponsor-close').click()
   await page.locator('.ofm-sponsor-dialog').waitFor({ state: 'hidden' })
   await verifyModelCancel('模型清单', '测试模型：fixture/model', '取消测试', '测试已取消')
+  await page.getByTestId('visibility-policy').waitFor()
+  page.once('dialog', dialog => dialog.accept())
+  await page.locator('.visibility-lane').filter({ hasText: '组合链' }).getByRole('button', { name: '只显示组合链', exact: true }).click()
+  await page.waitForFunction(() => document.querySelector('[data-model-id="combo:kilo"] [aria-label^="隐藏模型"]'))
+  assert.deepEqual(settings.visibilityPolicy, { mode: 'allowlist', hiddenLanes: [], visibleIds: ['combo:kilo'] })
+  await page.locator('[data-model-id="fixture/model"]').getByRole('button', { name: '显示模型：fixture/model', exact: true }).waitFor()
+  for (const viewport of [{ width: 1280, height: 900 }, { width: 390, height: 844 }, { width: 320, height: 740 }]) {
+    await page.setViewportSize(viewport)
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `模型策略在 ${viewport.width}px 不应溢出视口`)
+  }
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.getByRole('button', { name: '重置批量规则', exact: true }).click()
+  await page.waitForFunction(() => !document.querySelector('[data-model-id="fixture/model"] [aria-label^="显示模型"]'))
+  assert.deepEqual(settings.visibilityPolicy, { mode: 'blocklist', hiddenLanes: [], visibleIds: [] })
   await nav('用量统计'); await page.getByTestId('usage-ready').waitFor()
   await nav('服务设置'); await page.getByTestId('settings-ready').waitFor()
+  assert.ok(await page.locator('.settings-timing').count() >= 4, '设置页必须标注真实生效时机')
   await page.locator('#setting-defaultMaxTokens').fill('8192')
   await page.getByRole('button', { name: '保存设置', exact: true }).click()
   await page.getByText('设置已保存并生效', { exact: true }).waitFor()
@@ -140,7 +181,7 @@ try {
   await page.getByRole('button', { name: '退出管理', exact: true }).click()
   await page.getByTestId('login-screen').waitFor()
   assert.deepEqual(errors, [])
-  console.log('react UI: 登录失败/成功、七页面导航、草稿保留/保存、密钥显隐/复制/轮换、轮询保持子页、三种视口、中英切换持久化与请求语言、中英模型测试取消文字/中止/迟到结果隔离、退出通过')
+  console.log('react UI: 登录、导航、可见性白名单/车道批量、三种视口、设置生效时机、密钥、轮询、双语与退出通过')
 } finally {
   await browser.close(); management.dispose(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve))
 }

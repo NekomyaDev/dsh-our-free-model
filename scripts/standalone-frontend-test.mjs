@@ -78,6 +78,16 @@ const usageChunk = assets.find(name => name.startsWith('usage-'))
 assert.ok(usageChunk && app.includes(usageChunk), '入口必须按需导入用量页面')
 const settingsChunk = assets.find(name => name.startsWith('settings-'))
 assert.ok(settingsChunk && app.includes(settingsChunk), '入口必须按需导入服务设置')
+const modelsSource = fs.readFileSync(new URL('../packages/standalone/frontend/models.tsx', import.meta.url), 'utf8')
+const settingsSource = fs.readFileSync(new URL('../packages/standalone/frontend/settings.tsx', import.meta.url), 'utf8')
+assert.match(modelsSource, /visibilityPolicy/)
+assert.match(modelsSource, /hiddenByAllowlist/)
+assert.match(modelsSource, /visibility\.laneOnly/)
+assert.doesNotMatch(settingsSource, /toggle\('hideFreeModels'/)
+assert.doesNotMatch(settingsSource, /toggle\('hideEacModels'/)
+for (const timing of ['timingLive', 'timingNextRequest', 'timingNextCycle', 'timingNextConnection']) {
+  assert.match(settingsSource, new RegExp(`visibility\\.${timing}`), `服务设置缺少生效时机 ${timing}`)
+}
 for (const [_, name] of html.matchAll(/(?:src|href)="\/assets\/([^"]+)"/g)) {
   assert.ok(assets.includes(name), `HTML 资源未登记：${name}`)
 }
@@ -163,12 +173,17 @@ assert.equal(cumulative.requestFailures, 3)
 const savedSettings = {
   enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false,
   hideFreeModels: false, hideEacModels: false,
+  visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
   defaultMaxTokens: 32768, probeIntervalMinutes: 15,
   freeLane: { maxTries: 3 },
 }
 const cleanDraft = settingsDraft(savedSettings)
 assert.equal(settingsChanged(cleanDraft, savedSettings), false)
-assert.deepEqual(validateSettingsDraft(cleanDraft).patch, savedSettings)
+assert.deepEqual(validateSettingsDraft(cleanDraft).patch, {
+  enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false,
+  defaultMaxTokens: 32768, probeIntervalMinutes: 15,
+  freeLane: { maxTries: 3 },
+})
 for (const [field, valid, invalid] of [
   ['defaultMaxTokens', ['512', '131072', ' 8192 '], ['', ' ', '511', '131073', '512.5', 'NaN', 'Infinity']],
   ['probeIntervalMinutes', ['1', '1440', '12'], ['', ' ', '0', '1441', '1.5', 'NaN', 'Infinity']],
@@ -203,6 +218,7 @@ assert.equal(settingsChanged({ ...editedDraft, defaultMaxTokens: '32768', enable
 assert.deepEqual(savedSettings, {
   enabled: true, exposeRegionModels: true, streamRecovery: true, standaloneProbe: false,
   hideFreeModels: false, hideEacModels: false,
+  visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
   defaultMaxTokens: 32768, probeIntervalMinutes: 15,
   freeLane: { maxTries: 3 },
 }, '草稿操作不能改动输入配置')

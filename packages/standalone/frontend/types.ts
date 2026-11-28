@@ -1,13 +1,24 @@
 export type Page = string
+export type VisibilityLane = 'free' | 'kilo' | 'eac' | 'aggregate' | 'subscription' | 'combo' | 'account' | 'extension'
+
+export interface VisibilityPolicy {
+  mode: 'blocklist' | 'allowlist'
+  hiddenLanes: VisibilityLane[]
+  visibleIds: string[]
+}
 
 export interface Model {
   id: string
   name: string
   channel: string
   routable: boolean
+  visibilityLane?: VisibilityLane
   hiddenByUser?: boolean
   hiddenIds?: string[]
   hiddenByGroup?: boolean
+  hiddenByLane?: boolean
+  hiddenByAllowlist?: boolean
+  visibleIds?: string[]
   vision?: boolean
   reasoning?: boolean
   contextWindow?: number
@@ -26,6 +37,7 @@ export interface ServiceSettings {
   hiddenModelIds: string[]
   hideFreeModels: boolean
   hideEacModels: boolean
+  visibilityPolicy: VisibilityPolicy
   streamRecovery: boolean
   standaloneProbe: boolean
   probeIntervalMinutes: number

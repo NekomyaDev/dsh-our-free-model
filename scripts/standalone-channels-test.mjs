@@ -340,7 +340,7 @@ try {
       const accountRow = sharedRows.find(row => row.channel === 'loomy')
       const kiloRow = sharedRows.find(row => row.channel === 'kilo')
       assert.deepEqual([kiloRow.hiddenByGroup, kiloRow.hiddenByUser, kiloRow.hiddenIds, kiloRow.routable],
-        [true, true, [], false])
+        [true, false, [], false], 'group hiding is reported separately from exact-id hiding')
       assert.deepEqual([accountRow.hiddenByGroup, accountRow.hiddenByUser, accountRow.hiddenIds, accountRow.routable],
         [false, false, [], true])
       assert.deepEqual(groupOnly.publicIds, [shared], 'a public account row must not re-advertise its group-hidden Kilo duplicate')

@@ -5,8 +5,6 @@ export function settingsDraft(settings) {
   return {
     enabled: settings.enabled,
     exposeRegionModels: settings.exposeRegionModels,
-    hideFreeModels: settings.hideFreeModels === true,
-    hideEacModels: settings.hideEacModels === true,
     streamRecovery: settings.streamRecovery,
     standaloneProbe: settings.standaloneProbe,
     defaultMaxTokens: String(settings.defaultMaxTokens),
@@ -59,7 +57,6 @@ export function validateSettingsDraft(draft) {
     errors,
     patch: Object.keys(errors).length ? null : {
       enabled: draft.enabled, exposeRegionModels: draft.exposeRegionModels,
-      hideFreeModels: draft.hideFreeModels, hideEacModels: draft.hideEacModels,
       streamRecovery: draft.streamRecovery, standaloneProbe: draft.standaloneProbe,
       defaultMaxTokens: Number(draft.defaultMaxTokens), probeIntervalMinutes: Number(draft.probeIntervalMinutes),
       freeLane,

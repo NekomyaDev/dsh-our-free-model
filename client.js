@@ -302,6 +302,42 @@ window.__ModuleLoader__.load({
         'visibility.unlisted': '未公开模型',
         'visibility.groupHidden': '整组已隐藏，请先关闭上方的整组隐藏开关。',
         'visibility.hint': '隐藏仅影响模型选择器和网关清单，不影响历史会话；仍可在这里恢复显示。',
+        'visibility.policyTitle': '批量可见性',
+        'visibility.policySummary': '{hidden} 个车道被隐藏；白名单模式只展示已选模型。',
+        'visibility.blocklist': '全部展示，仅排除已隐藏项',
+        'visibility.allowlist': '只展示已选模型',
+        'visibility.allowlistConfirm': '把当前可见的 {n} 个模型设为白名单？之后新发现的模型会保持隐藏，直到你在卡片上主动选中。',
+        'visibility.allowlistOn': '已切换到白名单：当前可见的 {n} 个模型将成为初始白名单。',
+        'visibility.allowlistLimit': '当前目录超过 1000 项，不能安全创建白名单。请先使用车道隐藏缩小范围。',
+        'visibility.onlyLane': '只展示此车道',
+        'visibility.onlyLaneConfirm': '只展示“{lane}”的 {n} 个模型，并隐藏其它车道？历史精确隐藏项仍会保持隐藏。',
+        'visibility.hideLane': '隐藏此车道',
+        'visibility.showLane': '恢复此车道',
+        'visibility.laneHidden': '按车道隐藏',
+        'visibility.notSelected': '不在白名单',
+        'visibility.selectedBlocked': '已选入白名单，但仍被精确隐藏或其它规则阻止。',
+        'visibility.lane.free': '匿名免费',
+        'visibility.lane.kilo': 'Kilo',
+        'visibility.lane.eac': 'EAC',
+        'visibility.lane.aggregate': '聚合',
+        'visibility.lane.subscription': '订阅账号',
+        'visibility.lane.combo': '组合链',
+        'visibility.lane.account': '渠道账号',
+        'visibility.lane.extension': '扩展',
+        'effect.live': '即时',
+        'effect.live.hint': '保存后立即刷新模型目录和选择器。',
+        'effect.nextRequest': '下一次请求',
+        'effect.nextRequest.hint': '从下一次推理或探测开始使用；正在进行的请求保持旧值。',
+        'effect.nextCycle': '下一周期',
+        'effect.nextCycle.hint': '现有定时器在下一次运行时读取新值。',
+        'effect.reconnect': '需重新连接',
+        'effect.reconnect.hint': '保存后会重建监听器；已连接客户端可能需要重新连接。',
+        'effect.nextConnection': '新连接生效',
+        'effect.nextConnection.hint': '新建连接会使用新线路；已经建立的流不会被迁移。',
+        'effect.futureAction': '后续操作生效',
+        'effect.futureAction.hint': '影响之后的安装、检查或自动处理；当前已运行内容保持不变。',
+        'effect.hostDefined': '由宿主决定',
+        'effect.hostDefined.hint': '宿主会说明更新可热重载还是必须重启；以页面当前提示为准。',
         'routing.capacity': '链路能力交集',
         'routing.capacityUnavailable': '暂时无法读取链路能力交集，请重试。',
         'pref.interval': '自动刷新间隔（分钟）',
@@ -1316,6 +1352,42 @@ window.__ModuleLoader__.load({
         'visibility.unlisted': 'Unlisted models',
         'visibility.groupHidden': 'This group is hidden. Turn off the group switch above first.',
         'visibility.hint': 'Hiding affects the model picker and gateway listing only. Existing sessions keep working; restore visibility here.',
+        'visibility.policyTitle': 'Bulk visibility',
+        'visibility.policySummary': '{hidden} lane(s) hidden; allowlist mode advertises only selected models.',
+        'visibility.blocklist': 'Show everything except hidden items',
+        'visibility.allowlist': 'Show only selected models',
+        'visibility.allowlistConfirm': 'Use the {n} currently visible models as the allowlist? New discoveries stay hidden until you select them on a card.',
+        'visibility.allowlistOn': 'Allowlist enabled: the {n} models currently visible become the initial allowlist.',
+        'visibility.allowlistLimit': 'The current directory exceeds 1000 entries, so a complete allowlist cannot be created safely. Hide lanes first to reduce the scope.',
+        'visibility.onlyLane': 'Only this lane',
+        'visibility.onlyLaneConfirm': 'Show only the {n} models in “{lane}” and hide the other lanes? Exact hidden items stay hidden.',
+        'visibility.hideLane': 'Hide this lane',
+        'visibility.showLane': 'Show this lane',
+        'visibility.laneHidden': 'Hidden by lane',
+        'visibility.notSelected': 'Not on the allowlist',
+        'visibility.selectedBlocked': 'Selected for the allowlist, but still blocked by an exact or group rule.',
+        'visibility.lane.free': 'Anonymous free',
+        'visibility.lane.kilo': 'Kilo',
+        'visibility.lane.eac': 'EAC',
+        'visibility.lane.aggregate': 'Aggregate',
+        'visibility.lane.subscription': 'Subscriptions',
+        'visibility.lane.combo': 'Chains',
+        'visibility.lane.account': 'Channel accounts',
+        'visibility.lane.extension': 'Extensions',
+        'effect.live': 'Live',
+        'effect.live.hint': 'Saving immediately refreshes the model directory and selector.',
+        'effect.nextRequest': 'Next request',
+        'effect.nextRequest.hint': 'The next inference or probe uses the new value; in-flight requests keep the old one.',
+        'effect.nextCycle': 'Next cycle',
+        'effect.nextCycle.hint': 'The existing timer reads the new value on its next run.',
+        'effect.reconnect': 'Reconnect',
+        'effect.reconnect.hint': 'Saving rebuilds the listener; connected clients may need to reconnect.',
+        'effect.nextConnection': 'New connections',
+        'effect.nextConnection.hint': 'New connections use the new route; established streams are not moved.',
+        'effect.futureAction': 'Future actions',
+        'effect.futureAction.hint': 'Affects later installs, checks or automatic work; already-running content is unchanged.',
+        'effect.hostDefined': 'Host-defined',
+        'effect.hostDefined.hint': 'The host reports whether an update can hot reload or requires a restart; follow the current notice.',
         'routing.capacity': 'Chain capability intersection',
         'routing.capacityUnavailable': 'Cannot load chain capacities right now. Please retry.',
         'pref.interval': 'Auto-refresh interval (minutes)',
@@ -2442,6 +2514,14 @@ window.__ModuleLoader__.load({
 .ofm_navmark{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;flex:none;background:linear-gradient(145deg,var(--dsw-alias-state-business-primary),color-mix(in srgb,var(--dsw-alias-state-business-primary) 42%,#3ECFA0));box-shadow:0 4px 12px color-mix(in srgb,var(--dsw-alias-state-business-primary) 40%,transparent),inset 0 1px 0 rgb(255 255 255 / 22%)}
 .ofm_navmark svg{width:16px;height:16px;fill:#fff}
 .ofm_tabs{position:relative;grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:2px;padding:3px;border-radius:13px;border:1px solid color-mix(in srgb,var(--dsw-alias-border-l1) 80%,transparent);background:color-mix(in srgb,var(--dsw-alias-bg-layer-1) 62%,transparent);box-shadow:inset 0 1px 2px rgb(0 0 0 / 4%)}
+.ofm_effect{display:inline-flex;align-items:center;padding:2px 7px;border-radius:999px;border:1px solid var(--dsw-alias-border-l1);background:var(--dsw-alias-bg-layer-1);font-size:10px;font-weight:650;color:var(--dsw-alias-label-secondary);white-space:nowrap}
+.ofm_policy{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px}
+.ofm_lane{display:grid;grid-template-columns:minmax(100px,1fr) auto auto;align-items:center;gap:6px;padding:7px 8px;border:1px solid var(--dsw-alias-border-l1);border-radius:10px;background:var(--dsw-alias-bg-layer-1)}
+.ofm_lane[data-hidden="true"]{border-color:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 48%,var(--dsw-alias-border-l1));background:color-mix(in srgb,var(--dsw-alias-state-warning-primary,#f0a441) 7%,var(--dsw-alias-bg-layer-1))}
+.ofm_lane[data-selected="true"]{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--dsw-alias-state-business-primary) 48%,transparent)}
+.ofm_lanename{display:flex;align-items:center;gap:6px;min-width:0;font-size:11.5px;font-weight:650}
+.ofm_lanecount{font-variant-numeric:tabular-nums;color:var(--dsw-alias-label-tertiary);font-weight:600}
+.ofm_laneactions{display:flex;gap:5px;grid-column:1/-1}
 .ofm_tabglider{position:absolute;top:0;left:0;border-radius:10px;background:linear-gradient(150deg,color-mix(in srgb,var(--dsw-alias-bg-layer-3) 92%,transparent),color-mix(in srgb,var(--dsw-alias-bg-layer-2) 88%,transparent));box-shadow:0 3px 10px rgb(0 0 0 / 14%),inset 0 1px 0 rgb(255 255 255 / 9%);transition:transform .34s cubic-bezier(.22,.61,.36,1),width .34s cubic-bezier(.22,.61,.36,1),height .34s cubic-bezier(.22,.61,.36,1);pointer-events:none}
 .ofm_tab{position:relative;z-index:1;font:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:10px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);cursor:pointer;white-space:nowrap;transition:color .2s ease}
 .ofm_tab[data-on="true"]{color:var(--dsw-alias-label-primary)}
@@ -3788,6 +3868,30 @@ window.__ModuleLoader__.load({
         props.children)
     }
 
+    const EFFECT_LABEL = t => ({
+      live: t('effect.live'),
+      nextRequest: t('effect.nextRequest'),
+      nextCycle: t('effect.nextCycle'),
+      reconnect: t('effect.reconnect'),
+      nextConnection: t('effect.nextConnection'),
+      futureAction: t('effect.futureAction'),
+      hostDefined: t('effect.hostDefined'),
+    })
+    const EFFECT_HINT = t => ({
+      live: t('effect.live.hint'),
+      nextRequest: t('effect.nextRequest.hint'),
+      nextCycle: t('effect.nextCycle.hint'),
+      reconnect: t('effect.reconnect.hint'),
+      nextConnection: t('effect.nextConnection.hint'),
+      futureAction: t('effect.futureAction.hint'),
+      hostDefined: t('effect.hostDefined.hint'),
+    })
+    const EffectBadge = ({ t, kind }) => h('span', {
+      className: 'ofm_effect',
+      title: EFFECT_HINT(t)[kind] ?? '',
+      'aria-label': `${EFFECT_LABEL(t)[kind] ?? kind}: ${EFFECT_HINT(t)[kind] ?? ''}`,
+    }, EFFECT_LABEL(t)[kind] ?? kind)
+
     function Panel(props) {
       return h('div', { className: 'ofm_panel' },
         props.title === undefined ? null : h('div', { className: 'ofm_paneltitle' }, props.title, props.hint === undefined ? null : h('span', { className: 'ofm_sec_hint' }, props.hint)),
@@ -3884,6 +3988,8 @@ window.__ModuleLoader__.load({
       const manual = m.availabilitySource === 'manual'
       const stateKey = `state.${m.availability}`
       const dim = !listed && m.availability !== 'available'
+      const blockedByBroadRule = m.hiddenByGroup === true || m.hiddenByLane === true
+      const visibleChoice = m.hiddenByUser !== true && m.hiddenByAllowlist !== true && !blockedByBroadRule
       const rung = (m.budgets ?? []).find(row => row.isDefault === true)
       // A model that declares its own thinking levels shows them beside the
       // ceiling tag, so the card names what the composer's Effort menu offers.
@@ -3934,6 +4040,8 @@ window.__ModuleLoader__.load({
         h('div', { className: 'ofm_id', title: m.id }, m.label ?? m.id),
         h('div', { className: 'ofm_tags' },
           m.hiddenByUser === true ? h('span', { className: 'ofm_tag' }, t('visibility.hidden')) : null,
+          m.hiddenByAllowlist === true ? h('span', { className: 'ofm_tag' }, t('visibility.notSelected')) : null,
+          m.hiddenByLane === true ? h('span', { className: 'ofm_tag' }, t('visibility.laneHidden')) : null,
           m.fast === true ? h('span', { className: 'ofm_tag fast', title: t('tag.fastTitle') }, t('tag.fast')) : null,
           h('span', { className: 'ofm_tag' }, m.vision ? t('tag.vision') : t('tag.text')),
           m.reasoning ? h('span', { className: 'ofm_tag' }, m.canDisableThinking === false ? t('tag.thinkingShared') : t('tag.thinking')) : null,
@@ -4007,9 +4115,11 @@ window.__ModuleLoader__.load({
               t('perf.windowNote').replace('{h}', String(perf.windowHours ?? 24)))),
           perfOpen ? h(PerfCharts, { modelId: m.id, t }) : null),
         onVisibility === undefined ? null : h('div', { className: 'ofm_sec' },
-          h(Switch, { checked: m.hiddenByUser !== true, label: t('visibility.showModel'),
-            disabled: busy || m.hiddenByGroup === true, onChange: () => onVisibility(m) }),
-          m.hiddenByGroup === true ? h('p', { className: 'ofm_note' }, t('visibility.groupHidden')) : null),
+          h(Switch, { checked: visibleChoice, label: t('visibility.showModel'),
+            disabled: busy || blockedByBroadRule, onChange: () => onVisibility(m) }),
+          m.hiddenByGroup === true ? h('p', { className: 'ofm_note' }, t('visibility.groupHidden')) : null,
+          m.hiddenByLane === true ? h('p', { className: 'ofm_note' }, t('visibility.laneHidden')) : null,
+          m.hiddenByUser === true && (m.visibleIds ?? []).length > 0 ? h('p', { className: 'ofm_note' }, t('visibility.selectedBlocked')) : null),
         onBench === undefined ? null : h('div', { className: 'ofm_row' },
           h(Button, { disabled: bench?.running === true, onClick: () => onBench(m) }, bench?.running === true ? t('bench.running') : t('bench.run')),
           bench?.result === undefined ? null : h('span', { className: 'ofm_note' }, bench.result)))
@@ -4215,7 +4325,7 @@ window.__ModuleLoader__.load({
       const blocked = new Set(['throttled', 'unavailable', 'region-blocked'])
       const selectable = data.settings?.enabled === false ? 0 : rows.filter(model => {
         const state = model.availabilitySource === 'listing' ? 'unknown' : model.availability
-        return !blocked.has(state) && !model.hiddenByUser && !model.hiddenByGroup &&
+        return !blocked.has(state) && !model.hiddenByUser && !model.hiddenByGroup && !model.hiddenByLane && !model.hiddenByAllowlist &&
           (model.route === 'our-free-model' ||
             (model.route === 'our-free-model-region' && data.settings?.exposeRegionModels !== false))
       }).length
@@ -4238,13 +4348,86 @@ window.__ModuleLoader__.load({
       const available = lead(roster.filter(m => m.route === 'our-free-model'))
       const limited = lead(roster.filter(m => m.route === 'our-free-model-region'))
       const unlisted = lead(roster.filter(m => m.route !== 'our-free-model' && m.route !== 'our-free-model-region'))
+      const policy = summary.settings.visibilityPolicy ?? { mode: 'blocklist', hiddenLanes: [], visibleIds: [] }
+      const hiddenLanes = new Set(Array.isArray(policy.hiddenLanes) ? policy.hiddenLanes : [])
+      const policyVisibleIds = new Set(Array.isArray(policy.visibleIds) ? policy.visibleIds : [])
+      const laneRows = VISIBILITY_LANES.map(lane => ({
+        lane,
+        rows: summary.catalog.filter(model => model.visibilityLane === lane),
+      })).filter(group => group.rows.length > 0)
+      const savePolicy = patch => {
+        const next = { ...policy, ...patch }
+        if (Array.isArray(next.visibleIds) && next.visibleIds.length > 1000) {
+          showToast({ title: t('visibility.policyTitle'), body: t('visibility.allowlistLimit'), tone: 'warn', holdMs: 7000 })
+          return
+        }
+        onApply?.({ visibilityPolicy: next })
+      }
       const toggleModel = onApply === undefined ? undefined : model => {
         const ids = summary.settings.hiddenModelIds ?? []
         if (model.hiddenByUser === true) {
           const hidden = new Set(Array.isArray(model.hiddenIds) && model.hiddenIds.length > 0 ? model.hiddenIds : [model.id])
           return onApply({ hiddenModelIds: ids.filter(id => !hidden.has(id)) })
         }
+        if (policy.mode === 'allowlist') {
+          const selected = new Set(Array.isArray(policy.visibleIds) ? policy.visibleIds : [])
+          if (model.hiddenByAllowlist === true) {
+            for (const id of Array.isArray(model.visibleIds) && model.visibleIds.length > 0 ? model.visibleIds : [model.id]) selected.add(id)
+          } else {
+            for (const id of Array.isArray(model.visibleIds) && model.visibleIds.length > 0 ? model.visibleIds : [model.id]) selected.delete(id)
+          }
+          return savePolicy({ visibleIds: [...selected] })
+        }
         return onApply({ hiddenModelIds: ids.includes(model.id) ? ids : [...ids, model.id] })
+      }
+      const safeVisibilityConfirm = message => typeof window.confirm !== 'function' || window.confirm(message)
+      const enterAllowlist = () => {
+        const ids = [...new Set(summary.catalog.filter(model => model.route !== null).map(model => model.id))]
+        if (ids.length > 1000) {
+          showToast({ title: t('visibility.policyTitle'), body: t('visibility.allowlistLimit'), tone: 'warn', holdMs: 7000 })
+          return
+        }
+        if (!safeVisibilityConfirm(t('visibility.allowlistConfirm').replace('{n}', String(ids.length)))) return
+        savePolicy({ mode: 'allowlist', visibleIds: ids })
+        showToast({ title: t('visibility.allowlist'), body: t('visibility.allowlistOn').replace('{n}', String(ids.length)), holdMs: 4800 })
+      }
+      const onlyLane = group => {
+        const ids = group.rows.map(model => model.id)
+        if (ids.length > 1000) {
+          showToast({ title: t('visibility.policyTitle'), body: t('visibility.allowlistLimit'), tone: 'warn', holdMs: 7000 })
+          return
+        }
+        const label = VISIBILITY_LANE_LABEL(t)[group.lane]
+        if (!safeVisibilityConfirm(t('visibility.onlyLaneConfirm').replace('{lane}', label).replace('{n}', String(ids.length)))) return
+        onApply?.({
+          visibilityPolicy: {
+            ...policy,
+            mode: 'allowlist',
+            hiddenLanes: [...hiddenLanes].filter(lane => lane !== group.lane),
+            visibleIds: ids,
+          },
+          ...(group.lane === 'free' || group.lane === 'kilo'
+            ? (summary.settings.hideFreeModels === true ? { hideFreeModels: false } : {}) : {}),
+          ...(group.lane === 'eac'
+            ? (summary.settings.hideEacModels === true ? { hideEacModels: false } : {}) : {}),
+        })
+      }
+      const setLaneHidden = group => {
+        const hide = !hiddenLanes.has(group.lane)
+        const nextHidden = new Set(hiddenLanes)
+        if (hide) nextHidden.add(group.lane)
+        else nextHidden.delete(group.lane)
+        const laneIds = new Set(group.rows.map(model => model.id))
+        const nextVisible = new Set(policyVisibleIds)
+        if (hide) for (const id of laneIds) nextVisible.delete(id)
+        else if (policy.mode === 'allowlist') for (const id of laneIds) nextVisible.add(id)
+        onApply?.({
+          visibilityPolicy: { ...policy, hiddenLanes: [...nextHidden], visibleIds: [...nextVisible] },
+          ...(group.lane === 'free' || group.lane === 'kilo'
+            ? (summary.settings.hideFreeModels === true ? { hideFreeModels: false } : {}) : {}),
+          ...(group.lane === 'eac'
+            ? (summary.settings.hideEacModels === true ? { hideEacModels: false } : {}) : {}),
+        })
       }
       // 只有拿到过明确判定（网关答过 /eac/status）且未授权时才上锁：状态未知
       // 不该显示一把凭空的锁，网关不可达时本地记录仍算已授权。
@@ -4268,6 +4451,39 @@ window.__ModuleLoader__.load({
         laneNote,
         onApply === undefined ? null : h('div', { className: 'ofm_sec' },
           h('p', { className: 'ofm_note' }, t('visibility.hint')),
+          h('div', { className: 'ofm_row' },
+            h('span', { className: 'ofm_sec_title', style: { fontSize: 12.5 } }, t('visibility.policyTitle')),
+            h(EffectBadge, { t, kind: 'live' }),
+            h('span', { className: 'ofm_sec_hint' }, t('visibility.policySummary').replace('{hidden}', String(hiddenLanes.size)))),
+          h(Switch, {
+            checked: policy.mode === 'allowlist', disabled: busy,
+            label: policy.mode === 'allowlist' ? t('visibility.allowlist') : t('visibility.blocklist'),
+            onChange: () => policy.mode === 'allowlist'
+              ? savePolicy({ mode: 'blocklist' })
+              : enterAllowlist(),
+          }),
+          laneRows.length === 0 ? null : h('div', { className: 'ofm_policy', role: 'group', 'aria-label': t('visibility.policyTitle') },
+            laneRows.map(group => {
+              const selected = policy.mode === 'allowlist'
+                && group.rows.length > 0
+                && group.rows.every(model => policyVisibleIds.has(model.id))
+              return h('div', {
+                key: group.lane, className: 'ofm_lane',
+                'data-hidden': hiddenLanes.has(group.lane) ? 'true' : 'false',
+                'data-selected': selected ? 'true' : 'false',
+              },
+              h('span', { className: 'ofm_lanename' },
+                h('span', null, VISIBILITY_LANE_LABEL(t)[group.lane]),
+                h('span', { className: 'ofm_lanecount' }, String(group.rows.length)),
+                hiddenLanes.has(group.lane) ? h('span', { className: 'ofm_tag' }, t('visibility.laneHidden')) : null),
+              h('div', { className: 'ofm_laneactions' },
+                h(Button, {
+                  kind: 'ghost', disabled: busy,
+                  'aria-pressed': hiddenLanes.has(group.lane) ? 'true' : 'false',
+                  onClick: () => setLaneHidden(group),
+                }, hiddenLanes.has(group.lane) ? t('visibility.showLane') : t('visibility.hideLane')),
+                h(Button, { kind: 'ghost', disabled: busy, onClick: () => onlyLane(group) }, t('visibility.onlyLane'))))
+            })),
           h(Switch, { checked: summary.settings.hideFreeModels === true, disabled: busy,
             label: t('pref.hideFreeModels'), onChange: () => onApply({ hideFreeModels: summary.settings.hideFreeModels !== true }) }),
           h(Switch, { checked: summary.settings.hideEacModels === true, disabled: busy,
@@ -4785,6 +5001,7 @@ window.__ModuleLoader__.load({
       const lanToggle = current => ({ ...current, lan: { ...(current?.lan ?? {}), enabled: !(current?.lan?.enabled === true) } })
 
       return h(Panel, null,
+        h('div', { className: 'ofm_row' }, h(EffectBadge, { t, kind: 'reconnect' })),
         h('div', { className: 'ofm_row' },
           h(Switch, { checked: draft?.enabled === true, label: t('forward.enabled'), onChange: () => setDraft(current => ({ ...current, enabled: !(current?.enabled === true) })) }),
           h('span', { className: 'ofm_pill' }, h('span', { className: `ofm_dot ${draft?.running === true ? 'ok' : draft?.error ? 'err' : ''}` }), draft?.running === true ? t('forward.running') : t('forward.stopped'))),
@@ -4896,6 +5113,7 @@ window.__ModuleLoader__.load({
         onApply({ egress: patch })
       }
       return h(Panel, null,
+        h('div', { className: 'ofm_row' }, h(EffectBadge, { t, kind: 'nextConnection' })),
         h('div', { className: 'ofm_row' },
           h(Switch, { checked: draft?.enabled === true, label: t('egress.enabled'), onChange: () => setDraft(c => ({ ...c, enabled: !(c?.enabled === true) })) }),
           h('span', { className: 'ofm_pill' }, h('span', { className: `ofm_dot ${draft?.active === true ? 'ok' : draft?.error ? 'err' : ''}` }), draft?.active === true ? t('egress.active') : t('egress.inactive'))),
@@ -5020,6 +5238,7 @@ window.__ModuleLoader__.load({
       }
 
       return h(Panel, null,
+        h('div', { className: 'ofm_row' }, h(EffectBadge, { t, kind: 'nextConnection' })),
         configured && exits.length > 0
           ? h('div', { className: 'ofm_sec', style: { gap: 6 } },
             ...exits.map((exit, index) => h('div', { className: 'ofm_row', key: `${exit.label}:${index}` },
@@ -5084,13 +5303,17 @@ window.__ModuleLoader__.load({
       return h(Panel, null,
         h('div', { className: 'ofm_row', style: { gap: 20 } },
           h(Switch, { checked: settings.enabled !== false, label: t('pref.enabled'), onChange: () => onApply({ enabled: !(settings.enabled !== false) }) }),
-          h(Switch, { checked: settings.exposeRegionModels !== false, label: t('pref.exposeRegion'), onChange: () => onApply({ exposeRegionModels: !(settings.exposeRegionModels !== false) }) })),
+          h(Switch, { checked: settings.exposeRegionModels !== false, label: t('pref.exposeRegion'), onChange: () => onApply({ exposeRegionModels: !(settings.exposeRegionModels !== false) }) }),
+          h(EffectBadge, { t, kind: 'live' })),
         h('div', { className: 'ofm_row', style: { gap: 20 } },
           h(Switch, { checked: settings.hideFreeModels === true, disabled: busy, label: t('pref.hideFreeModels'), onChange: () => onApply({ hideFreeModels: settings.hideFreeModels !== true }) }),
-          h(Switch, { checked: settings.hideEacModels === true, disabled: busy, label: t('pref.hideEacModels'), onChange: () => onApply({ hideEacModels: settings.hideEacModels !== true }) })),
+          h(Switch, { checked: settings.hideEacModels === true, disabled: busy, label: t('pref.hideEacModels'), onChange: () => onApply({ hideEacModels: settings.hideEacModels !== true }) }),
+          h(EffectBadge, { t, kind: 'live' })),
         h('div', { className: 'ofm_row' },
           field(t('pref.interval'), h('input', { className: 'ofm_input', style: { maxWidth: 100 }, value: draft?.probeIntervalMinutes ?? 15, onChange: e => setDraft(c => ({ ...c, probeIntervalMinutes: Number(e.target.value.replace(/\D/g, '')) || 0 })) })),
           field(t('pref.maxTokens'), h('input', { className: 'ofm_input', style: { maxWidth: 120 }, value: draft?.defaultMaxTokens ?? 32768, onChange: e => setDraft(c => ({ ...c, defaultMaxTokens: Number(e.target.value.replace(/\D/g, '')) || 0 })) })),
+          h(EffectBadge, { t, kind: 'nextCycle' }),
+          h(EffectBadge, { t, kind: 'nextRequest' }),
           h(Button, { kind: 'primary', disabled: busy, onClick: () => onApply({ probeIntervalMinutes: draft.probeIntervalMinutes, defaultMaxTokens: draft.defaultMaxTokens }) }, t('forward.apply'))),
         h('div', { className: 'ofm_row', style: { gap: 8 } },
           h('span', { className: 'ofm_pill' }, `${t('pref.egress')}: ${summary.egress?.ip ?? '—'}${summary.egress?.country ? ` (${summary.egress.country})` : ''}`),
@@ -5309,6 +5532,7 @@ window.__ModuleLoader__.load({
         && data.applying !== true && data.recoveryRequired !== true && data.versionMismatch !== true
       return h(Panel, null,
         h('div', { className: 'ofm_upgradecards' },
+          h(EffectBadge, { t, kind: 'hostDefined' }),
           h('span', { className: 'ofm_pill strong' }, `${t('upgrade.current')}: ${data?.current || '…'}`),
           data?.installedVersion !== undefined ? h('span', { className: 'ofm_pill' }, `${t('upgrade.installed')}: ${data.installedVersion || '…'}`) : null,
           data?.latest !== undefined && data.latest !== '' ? h('span', { className: 'ofm_pill' }, `${t('upgrade.latest')}: ${data.latest}`) : null,
@@ -6608,6 +6832,7 @@ window.__ModuleLoader__.load({
               h('h2', null, t('chan.title')),
               h('p', { className: 'ofm_pagesub' }, t('chan.sub'))),
             h('div', { className: 'ofm_pills' },
+            h(EffectBadge, { t, kind: 'live' }),
               h(Pill, { strong: true, tone: ready ? 'ok' : failed ? 'err' : 'warn' },
                 ready ? `${connected}/${CHANNEL_PROVIDERS.length} ${t('chan.state.on')}` : t('chan.state.off')),
               h(Pill, null, `${t('chan.meta.accounts')} ${statuses === undefined ? '—' : CHANNEL_PROVIDERS.reduce((sum, row) => sum + (statuses[row.id]?.accounts?.enabled ?? 0), 0)}`))),
@@ -7253,6 +7478,17 @@ window.__ModuleLoader__.load({
       aggregate: t('routing.channel.aggregate'),
       combo: t('routing.channel.combo'),
     })
+    const VISIBILITY_LANES = ['free', 'kilo', 'eac', 'aggregate', 'subscription', 'combo', 'account', 'extension']
+    const VISIBILITY_LANE_LABEL = t => ({
+      free: t('visibility.lane.free'),
+      kilo: t('visibility.lane.kilo'),
+      eac: t('visibility.lane.eac'),
+      aggregate: t('visibility.lane.aggregate'),
+      subscription: t('visibility.lane.subscription'),
+      combo: t('visibility.lane.combo'),
+      account: t('visibility.lane.account'),
+      extension: t('visibility.lane.extension'),
+    })
 
     /**
      * Auth kinds this lane cannot drive.
@@ -7567,6 +7803,7 @@ window.__ModuleLoader__.load({
           h('div', { className: 'ofm_pagehead' },
             h('div', { className: 'ofm_pagetitle' }, h('h2', null, t('agg.title')), h('p', { className: 'ofm_pagesub' }, t('agg.sub'))),
           h('div', { className: 'ofm_pills' },
+            h(EffectBadge, { t, kind: 'nextRequest' }),
             h(Pill, null, t('agg.registryCount').replace('{n}', String(registry.length))),
             h(Pill, { strong: true }, t('agg.configuredCount').replace('{n}', String(configuredCount))))),
           h(Button, {
@@ -7942,6 +8179,7 @@ window.__ModuleLoader__.load({
       return h('div', { className: 'ofm_page' },
         h(PageHero, { title: t('saver.title'), sub: t('saver.sub') },
           h('div', { className: 'ofm_pills' },
+            h(EffectBadge, { t, kind: 'nextRequest' }),
             h(Pill, { strong: true, tone: saver?.enabled === false ? 'warn' : 'ok' },
               saver?.enabled === false ? t('agg.disabled') : t('agg.enabled')))),
         panel.status === 'loading' ? h(PanelSkeleton) : null,
@@ -8366,6 +8604,7 @@ window.__ModuleLoader__.load({
           : null,
         panel.status === 'ready'
           ? h(Section, { title: t('routing.chains'), hint: t('routing.chainsHint') },
+            h('div', { className: 'ofm_row' }, h(EffectBadge, { t, kind: 'live' })),
             h('p', { className: 'ofm_note' }, t('routing.ioNote')),
             ioError === '' ? null : h('div', { className: 'ofm_callout ofm_error', role: 'alert' }, ioError),
             // The editor renders full width above the list rather than inside a
@@ -9326,6 +9565,7 @@ window.__ModuleLoader__.load({
               h('h2', null, t('ext.title')),
               h('p', { className: 'ofm_pagesub' }, t('ext.sub'))),
             h('div', { className: 'ofm_pills' },
+              h(EffectBadge, { t, kind: 'futureAction' }),
               h(Pill, { strong: true }, t('ext.count').replace('{n}', String(indexRows.length))),
               h(Pill, null, t('ext.countByType').replace('{c}', String(channelCount)).replace('{e}', String(indexRows.length - channelCount))),
               h(Button, {

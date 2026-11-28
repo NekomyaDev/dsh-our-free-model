@@ -85,15 +85,17 @@ export function Settings({ summary, host, active }: { summary: Summary; host: Ho
       if (mounted.current) setSaving(false)
     }
   }
-  const toggle = (name: 'enabled' | 'exposeRegionModels' | 'streamRecovery' | 'standaloneProbe' | 'hideFreeModels' | 'hideEacModels', label: string, help: string, disabled = false) =>
+  const timing = (label: string, help: string) =>
+    <span className="settings-timing" title={help}>{label}</span>
+  const toggle = (name: 'enabled' | 'exposeRegionModels' | 'streamRecovery' | 'standaloneProbe', label: string, help: string, disabled = false, effect?: string, effectHelp?: string) =>
     <label className="settings-field" key={name}>
-      <span><strong>{label}</strong><small>{help}</small></span>
+      <span><strong>{label}{effect && timing(effect, effectHelp ?? '')}</strong><small>{help}</small></span>
       <input type="checkbox" role="switch" name={name} className="settings-toggle" disabled={disabled}
         checked={state.draft[name]} onChange={event => update(name, event.target.checked)} />
     </label>
-  const numeric = (name: NumberField, label: string, help: string, min: number, max: number) =>
+  const numeric = (name: NumberField, label: string, help: string, min: number, max: number, effect?: string, effectHelp?: string) =>
     <div className="settings-field settings-number-field">
-      <label htmlFor={`setting-${name}`}><strong>{label}</strong><small>{help}</small></label>
+      <label htmlFor={`setting-${name}`}><strong>{label}{effect && timing(effect, effectHelp ?? '')}</strong><small>{help}</small></label>
       <div className="settings-number"><Input id={`setting-${name}`} name={name} type="number" min={min} max={max} step={1}
         value={state.draft[name]} onChange={event => update(name, event.target.value)}
         aria-invalid={!!errors[name]} aria-describedby={errors[name] ? `setting-error-${name}` : undefined} />
@@ -111,29 +113,28 @@ export function Settings({ summary, host, active }: { summary: Summary; host: Ho
     <form onSubmit={event => { void submit(event) }} noValidate>
       <fieldset disabled={saving} className="settings-fieldset">
         <Card className="settings-card"><div className="settings-card-heading"><Settings2 size={16} /><div><h2>{t('cfg.inferenceTitle')}</h2><p>{t('cfg.inferenceSub')}</p></div></div>
-          {toggle('enabled', t('cfg.enabled'), t('cfg.enabledHelp'))}
-          {toggle('exposeRegionModels', t('cfg.exposeRegion'), t('cfg.exposeRegionHelp'))}
-          {toggle('hideFreeModels', visibility.hideFree, t('cfg.hideFreeHelp'))}
-          {toggle('hideEacModels', visibility.hideEac, t('cfg.hideEacHelp'))}
-          {toggle('streamRecovery', t('cfg.recovery'), t('cfg.recoveryHelp'))}
-          {numeric('defaultMaxTokens', t('cfg.maxTokens'), t('cfg.maxTokensHelp'), 512, 131072)}
+          {toggle('enabled', t('cfg.enabled'), t('cfg.enabledHelp'), false, visibility.timingLive, visibility.timingLiveHelp)}
+          {toggle('exposeRegionModels', t('cfg.exposeRegion'), t('cfg.exposeRegionHelp'), false, visibility.timingLive, visibility.timingLiveHelp)}
+          {toggle('streamRecovery', t('cfg.recovery'), t('cfg.recoveryHelp'), false, visibility.timingNextRequest, visibility.timingNextRequestHelp)}
+          {numeric('defaultMaxTokens', t('cfg.maxTokens'), t('cfg.maxTokensHelp'), 512, 131072, visibility.timingNextRequest, visibility.timingNextRequestHelp)}
+          <p className="settings-note" role="note"><CircleAlert size={15} /><span>{visibility.managedInModels}</span></p>
         </Card>
         <Card className="settings-card"><div className="settings-card-heading"><RefreshCw size={16} /><div><h2>{t('cfg.refreshTitle')}</h2><p>{t('cfg.refreshSub')}</p></div></div>
-          {numeric('probeIntervalMinutes', t('cfg.interval'), t('cfg.intervalHelp'), 1, 1440)}
-          {toggle('standaloneProbe', t('cfg.probe'), t('cfg.probeHelp'), true)}
+          {numeric('probeIntervalMinutes', t('cfg.interval'), t('cfg.intervalHelp'), 1, 1440, visibility.timingNextCycle, visibility.timingNextCycleHelp)}
+          {toggle('standaloneProbe', t('cfg.probe'), t('cfg.probeHelp'), true, visibility.timingNextCycle, visibility.timingNextCycleHelp)}
           <p className="settings-note" role="note"><CircleAlert size={15} /><span>{summary.automaticRefresh
             ? t('cfg.refreshOn')
             : t('cfg.refreshOff')}</span></p>
         </Card>
         <Card className="settings-card"><div className="settings-card-heading"><ShieldCheck size={16} /><div><h2>{t('cfg.laneTitle')}</h2><p>{t('cfg.laneSub')}</p></div></div>
           <div className="settings-field">
-            <label htmlFor="setting-laneExits"><strong>{t('cfg.laneExitsLabel')}</strong><small>{t('cfg.laneExitsHelp')}</small></label>
+            <label htmlFor="setting-laneExits"><strong>{t('cfg.laneExitsLabel')}{timing(visibility.timingNextConnection, visibility.timingNextConnectionHelp)}</strong><small>{t('cfg.laneExitsHelp')}</small></label>
             <textarea id="setting-laneExits" name="laneExits" rows={4} className="settings-textarea"
               placeholder={'http://127.0.0.1:7890\nsocks5://127.0.0.1:1080'}
               value={state.draft.laneExits} onChange={event => update('laneExits', event.target.value)} />
             <p className="settings-hint">{t('cfg.laneExitsHint')}</p>
           </div>
-          {numeric('laneMaxTries', t('cfg.laneMaxTries'), t('cfg.laneMaxTriesHelp'), 1, 8)}
+          {numeric('laneMaxTries', t('cfg.laneMaxTries'), t('cfg.laneMaxTriesHelp'), 1, 8, visibility.timingNextConnection, visibility.timingNextConnectionHelp)}
           <div className="settings-field">
             <span><strong>{t('cfg.currentExits')}</strong><small>{laneExitLabels.length === 0 ? t('cfg.currentExitsEmpty') : t('cfg.currentExitsHelp')}</small></span>
             <ul className="settings-exit-list">
@@ -158,6 +159,6 @@ export function Settings({ summary, host, active }: { summary: Summary; host: Ho
       </fieldset>
       {error && <p className="settings-save-error" role="alert"><CircleAlert size={16} /><span>{error}</span></p>}
     </form>
-    <p className="footnote">{t('cfg.footnote')}</p>
+    <p className="footnote">{t('cfg.footnote')} {visibility.externalFileNote}</p>
   </div>
 }

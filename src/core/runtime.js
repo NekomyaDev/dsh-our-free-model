@@ -590,6 +590,7 @@ export function createModelRuntime({
         // Hiding advertisements must not invalidate requests using a saved id.
         const forwardSettings = {
           ...snapshot.settings, hiddenModelIds: [], hideFreeModels: false, hideEacModels: false,
+          visibilityPolicy: { mode: 'blocklist', hiddenLanes: [], visibleIds: [] },
         }
         return { ...snapshot, membership: computeMembership(snapshot.catalog, availability.get(), forwardSettings,
           buildModelVisibility(forwardSettings, snapshot.visibility.familyKeysById)) }

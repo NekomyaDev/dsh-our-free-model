@@ -121,6 +121,110 @@
 }
 .model-list-toolbar input[type="checkbox"][role="switch"]:disabled { opacity: .45; cursor: not-allowed; }
 
+/* ── 可见性策略 ─────────────────────────────────────────────────────────── */
+.visibility-policy {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-md);
+  background: var(--bg-2);
+}
+.visibility-policy-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+.visibility-policy-heading > div:first-child { min-width: 190px; flex: 1; }
+.visibility-policy-heading h2 { margin: 0; font-size: 12.5px; font-weight: 580; }
+.visibility-policy-heading p {
+  margin: 3px 0 0;
+  max-width: 620px;
+  color: var(--fg-2);
+  font-size: 11px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.visibility-policy-modes {
+  display: flex;
+  flex: none;
+  padding: 2px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-sm);
+  background: var(--bg-1);
+}
+.visibility-policy-modes button,
+.visibility-lane button {
+  border: 0;
+  background: transparent;
+  color: var(--fg-2);
+  font: inherit;
+  cursor: pointer;
+}
+.visibility-policy-modes button {
+  min-height: 27px;
+  padding: 4px 9px;
+  border-radius: calc(var(--r-sm) - 1px);
+  font-size: 10.5px;
+}
+.visibility-policy-modes button[aria-pressed="true"] {
+  background: var(--fg-0);
+  color: var(--bg-0);
+}
+.visibility-policy-summary {
+  margin: 0;
+  font-family: var(--mono-font);
+  font-size: 10.5px;
+  color: var(--fg-2);
+}
+.visibility-lanes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 6px;
+  min-width: 0;
+}
+.visibility-lane {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid var(--line-1);
+  border-radius: var(--r-sm);
+  background: var(--bg-1);
+}
+.visibility-lane > span { min-width: 0; }
+.visibility-lane strong,
+.visibility-lane small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.visibility-lane strong { font-size: 10.5px; font-weight: 560; }
+.visibility-lane small { margin-top: 1px; font: 9.5px var(--mono-font); color: var(--fg-3); }
+.visibility-lane button {
+  min-height: 25px;
+  padding: 3px 6px;
+  border: 1px solid var(--line-1);
+  border-radius: calc(var(--r-sm) - 1px);
+  font-size: 9.5px;
+  white-space: nowrap;
+}
+.visibility-lane button[aria-pressed="true"] { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
+.visibility-policy-modes button:hover:not(:disabled),
+.visibility-lane button:hover:not(:disabled) { color: var(--fg-0); border-color: var(--line-3); }
+.visibility-policy-modes button:focus-visible,
+.visibility-lane button:focus-visible { outline: 2px solid var(--fg-0); outline-offset: 2px; }
+.visibility-policy button:disabled { opacity: .42; cursor: not-allowed; }
+.visibility-policy-reset {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.visibility-policy-reset small { color: var(--fg-2); font-size: 10.5px; line-height: 1.5; }
+
 /* 分段控件（全部 / 可接入 / 未公开）的样式定义在 system/shell.css：
    它是按需分包，用量统计页也用它，不能只住在 models.css 里。 */
 
@@ -406,6 +510,10 @@
 @media (max-width: 700px) {
   .model-filters > select { flex: 1 1 132px; }
   .model-search { flex-basis: 100%; max-width: none; }
+  .visibility-policy-heading { flex-direction: column; }
+  .visibility-policy-modes { width: 100%; }
+  .visibility-policy-modes button { flex: 1; }
+  .visibility-lanes { grid-template-columns: minmax(0, 1fr); }
   .model-table-header { display: none; }
   /* 卡片式两行：身份+渠道在左，状态与操作在右 */
   .model-table-row {
@@ -429,6 +537,8 @@
   .model-browser .actions { width: 100%; }
   .model-browser .actions .ui-button { flex: 1; }
   .model-list-toolbar > span[role="status"] { margin-left: 0; }
+  .visibility-lane { grid-template-columns: minmax(0, 1fr) auto; }
+  .visibility-lane button:last-child { grid-column: 1 / -1; }
   .model-row-actions .ui-button-outline { padding: 0 8px; }
 }
 
